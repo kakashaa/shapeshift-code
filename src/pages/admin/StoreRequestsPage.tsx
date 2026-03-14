@@ -136,7 +136,7 @@ export default function StoreRequestsPage() {
       // Hair selections
       if (filter === "all" || filter === "hair") {
         const { data } = await supabase
-          .from("hair_selections")
+          .from("hair_selections" as any)
           .select("*, hairs(title, file_url)")
           .order("created_at", { ascending: false });
         if (data) {
