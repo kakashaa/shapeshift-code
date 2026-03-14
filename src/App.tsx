@@ -63,43 +63,45 @@ function AppRoutes() {
   const { loggedIn, type } = useAuth();
 
   return (
-    <Routes>
-      {/* Auth routes */}
-      <Route path="/login" element={loggedIn ? <Navigate to={type === "user" ? "/user" : "/"} replace /> : <LoginPage />} />
-      <Route path="/login/admin" element={<AdminLoginPage />} />
-      <Route path="/login/user" element={<UserLoginPage />} />
+    <AnimatedRoutes>
+      <Routes location={location}>
+        {/* Auth routes */}
+        <Route path="/login" element={loggedIn ? <Navigate to={type === "user" ? "/user" : "/"} replace /> : <LoginPage />} />
+        <Route path="/login/admin" element={<AdminLoginPage />} />
+        <Route path="/login/user" element={<UserLoginPage />} />
 
-      {/* Admin routes */}
-      <Route element={<ProtectedRoute allowedType="admin"><AdminLayout /></ProtectedRoute>}>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/support" element={<SupportPage />} />
-        <Route path="/monitoring" element={<MonitoringPage />} />
-        <Route path="/finance" element={<FinancePage />} />
-        <Route path="/more" element={<MorePage />} />
-      </Route>
+        {/* Admin routes */}
+        <Route element={<ProtectedRoute allowedType="admin"><AdminLayout /></ProtectedRoute>}>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/support" element={<SupportPage />} />
+          <Route path="/monitoring" element={<MonitoringPage />} />
+          <Route path="/finance" element={<FinancePage />} />
+          <Route path="/more" element={<MorePage />} />
+        </Route>
 
-      {/* Admin sub-pages (no bottom nav for some) */}
-      <Route path="/support/:ticketId" element={<ProtectedRoute allowedType="admin"><SupportChatPage /></ProtectedRoute>} />
-      <Route path="/more/notifications" element={<ProtectedRoute allowedType="admin"><NotificationsPage /></ProtectedRoute>} />
-      <Route path="/more/reports" element={<ProtectedRoute allowedType="admin"><ReportsPage /></ProtectedRoute>} />
-      <Route path="/more/vip" element={<ProtectedRoute allowedType="admin"><VipRequestsPage /></ProtectedRoute>} />
-      <Route path="/more/store" element={<ProtectedRoute allowedType="admin"><StoreRequestsPage /></ProtectedRoute>} />
-      <Route path="/more/user-search" element={<ProtectedRoute allowedType="admin"><UserSearchPage /></ProtectedRoute>} />
-      <Route path="/more/admin-chat" element={<ProtectedRoute allowedType="admin"><AdminChatPage /></ProtectedRoute>} />
-      <Route path="/more/gift-audit" element={<ProtectedRoute allowedType="admin"><GiftAuditPage /></ProtectedRoute>} />
-      <Route path="/more/activity-log" element={<ProtectedRoute allowedType="admin"><ActivityLogPage /></ProtectedRoute>} />
-      <Route path="/more/id-change" element={<ProtectedRoute allowedType="admin"><IdChangePage /></ProtectedRoute>} />
-      <Route path="/more/registrations" element={<ProtectedRoute allowedType="admin"><RegistrationsPage /></ProtectedRoute>} />
+        {/* Admin sub-pages (no bottom nav for some) */}
+        <Route path="/support/:ticketId" element={<ProtectedRoute allowedType="admin"><SupportChatPage /></ProtectedRoute>} />
+        <Route path="/more/notifications" element={<ProtectedRoute allowedType="admin"><NotificationsPage /></ProtectedRoute>} />
+        <Route path="/more/reports" element={<ProtectedRoute allowedType="admin"><ReportsPage /></ProtectedRoute>} />
+        <Route path="/more/vip" element={<ProtectedRoute allowedType="admin"><VipRequestsPage /></ProtectedRoute>} />
+        <Route path="/more/store" element={<ProtectedRoute allowedType="admin"><StoreRequestsPage /></ProtectedRoute>} />
+        <Route path="/more/user-search" element={<ProtectedRoute allowedType="admin"><UserSearchPage /></ProtectedRoute>} />
+        <Route path="/more/admin-chat" element={<ProtectedRoute allowedType="admin"><AdminChatPage /></ProtectedRoute>} />
+        <Route path="/more/gift-audit" element={<ProtectedRoute allowedType="admin"><GiftAuditPage /></ProtectedRoute>} />
+        <Route path="/more/activity-log" element={<ProtectedRoute allowedType="admin"><ActivityLogPage /></ProtectedRoute>} />
+        <Route path="/more/id-change" element={<ProtectedRoute allowedType="admin"><IdChangePage /></ProtectedRoute>} />
+        <Route path="/more/registrations" element={<ProtectedRoute allowedType="admin"><RegistrationsPage /></ProtectedRoute>} />
 
-      {/* User routes */}
-      <Route element={<ProtectedRoute allowedType="user"><UserLayout /></ProtectedRoute>}>
-        <Route path="/user" element={<UserDashboard />} />
-        <Route path="/user/charges" element={<UserChargesPage />} />
-        <Route path="/user/salary" element={<UserSalaryPage />} />
-      </Route>
+        {/* User routes */}
+        <Route element={<ProtectedRoute allowedType="user"><UserLayout /></ProtectedRoute>}>
+          <Route path="/user" element={<UserDashboard />} />
+          <Route path="/user/charges" element={<UserChargesPage />} />
+          <Route path="/user/salary" element={<UserSalaryPage />} />
+        </Route>
 
-      <Route path="*" element={<NotFound />} />
-    </Routes>
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </AnimatedRoutes>
   );
 }
 
