@@ -93,7 +93,7 @@ export default function SupportChatPage() {
     setInput("");
 
     const { error } = await supabase
-      .from("ticket_messages")
+      .from("ticket_messages" as any)
       .insert({
         ticket_id: ticketId,
         message: msg,
