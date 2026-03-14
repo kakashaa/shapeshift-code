@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { PageHeader } from "@/components/PageHeader";
 import { CardSkeleton } from "@/components/LoadingSkeleton";
 import { EmptyState } from "@/components/EmptyState";
-import { ShoppingBag, Check, X, ExternalLink, Image, Frame, Sparkles, Gift, Scissors } from "lucide-react";
+import { ShoppingBag, Check, X } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { UserAvatar } from "@/components/UserAvatar";
 

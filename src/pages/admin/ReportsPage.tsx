@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { PageHeader } from "@/components/PageHeader";
 import { CardSkeleton } from "@/components/LoadingSkeleton";
 import { EmptyState } from "@/components/EmptyState";
-import { AlertTriangle, Check, X, ExternalLink, Shield, FileWarning } from "lucide-react";
+import { AlertTriangle, Check, ExternalLink, Shield } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 
 interface BanReport {
