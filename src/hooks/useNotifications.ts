@@ -1,50 +1,54 @@
 import { useState, useEffect, useCallback, useRef } from "react";
+import { adminAPI } from "@/lib/api";
 
 export interface AppNotification {
   id: string;
-  type: "support" | "report" | "vip" | "store" | "monitor" | "system";
+  category: string;
   title: string;
   body: string;
   time: Date;
   read: boolean;
+  extra?: Record<string, any>;
   link?: string;
 }
 
-const TYPE_LABELS: Record<AppNotification["type"], string> = {
-  support: "🎧 دعم",
-  report: "🚨 بلاغ",
+const CATEGORY_LABELS: Record<string, string> = {
+  eid_prize: "🎉 حدث العيد",
+  big_charge: "💰 شحنات",
+  big_gift: "🎁 هدايا",
+  salary: "💵 رواتب",
+  ban: "🚫 حظر",
   vip: "⭐ VIP",
-  store: "🛒 متجر",
-  monitor: "👁 مراقبة",
+  id_change: "🔄 تغيير آيدي",
+  new_user: "👤 مستخدم جديد",
+  custom_gift: "🎨 هدايا مخصصة",
+  entry: "🚪 دخوليات",
+  frame: "🖼️ إطارات",
+  animated_photo: "📸 صور متحركة",
+  hair: "💇 شعر",
+  stars: "⭐ نجوم",
+  support: "🎧 دعم",
   system: "⚙️ نظام",
 };
 
-export function getTypeLabel(type: AppNotification["type"]) {
-  return TYPE_LABELS[type];
-}
+const CATEGORY_LINKS: Record<string, string> = {
+  eid_prize: "/more/analytics",
+  big_charge: "/finance",
+  big_gift: "/more/gift-audit",
+  salary: "/finance/salaries",
+  ban: "/monitoring",
+  vip: "/more/vip",
+  id_change: "/more/id-change",
+  new_user: "/more/registrations",
+  custom_gift: "/more/store",
+  entry: "/more/store",
+  frame: "/more/store",
+  support: "/support",
+  system: "/more/activity-log",
+};
 
-// Demo notifications pool
-const DEMO_POOL: Omit<AppNotification, "id" | "time" | "read">[] = [
-  { type: "support", title: "تذكرة دعم جديدة", body: "محمد أحمد: مرحبا عندي مشكلة بالشحن", link: "/support" },
-  { type: "report", title: "بلاغ جديد", body: "بلاغ على المستخدم خالد بسبب إساءة", link: "/more/reports" },
-  { type: "vip", title: "طلب VIP جديد", body: "سارة خالد تطلب ترقية حسابها لـ VIP", link: "/more/vip" },
-  { type: "store", title: "طلب متجر جديد", body: "طلب شراء إطار ذهبي من فهد", link: "/more/store" },
-  { type: "monitor", title: "رسالة مشبوهة", body: "رسالة تحتوي رقم واتساب بين أحمد ونورة", link: "/monitoring" },
-  { type: "support", title: "رد على تذكرة #42", body: "العميل رد على تذكرة الدعم المفتوحة", link: "/support" },
-  { type: "system", title: "مستخدم جديد", body: "تسجيل حساب جديد: علي محمد", link: "/more/registrations" },
-  { type: "report", title: "بلاغ تحرش", body: "بلاغ جديد من نورة على مستخدم مجهول", link: "/more/reports" },
-];
-
-let notifCounter = 0;
-
-function createDemoNotification(): AppNotification {
-  const template = DEMO_POOL[Math.floor(Math.random() * DEMO_POOL.length)];
-  return {
-    ...template,
-    id: `notif-${++notifCounter}`,
-    time: new Date(),
-    read: false,
-  };
+export function getCategoryLabel(category: string) {
+  return CATEGORY_LABELS[category] || "📌 " + category;
 }
 
 // Browser notification permission
@@ -71,7 +75,6 @@ function showBrowserNotification(notif: AppNotification) {
   };
 }
 
-// Play notification sound
 function playSound() {
   try {
     const ctx = new AudioContext();
@@ -88,61 +91,77 @@ function playSound() {
   } catch {}
 }
 
-const STORAGE_KEY = "ghala_notifications";
-
-function loadNotifications(): AppNotification[] {
-  try {
-    const raw = sessionStorage.getItem(STORAGE_KEY);
-    if (!raw) return [];
-    return JSON.parse(raw).map((n: any) => ({ ...n, time: new Date(n.time) }));
-  } catch {
-    return [];
-  }
-}
-
-function saveNotifications(notifs: AppNotification[]) {
-  sessionStorage.setItem(STORAGE_KEY, JSON.stringify(notifs.slice(0, 50)));
-}
-
 export function useNotifications(enabled = true) {
-  const [notifications, setNotifications] = useState<AppNotification[]>(loadNotifications);
+  const [notifications, setNotifications] = useState<AppNotification[]>([]);
+  const [unreadCount, setUnreadCount] = useState(0);
   const [permissionGranted, setPermissionGranted] = useState(
     typeof window !== "undefined" && "Notification" in window && Notification.permission === "granted"
   );
   const intervalRef = useRef<ReturnType<typeof setInterval>>();
+  const lastFetchRef = useRef<string[]>([]);
 
-  const unreadCount = notifications.filter(n => !n.read).length;
+  // Fetch notifications from API
+  const fetchNotifications = useCallback(async () => {
+    try {
+      const res = await adminAPI("admin_notifications", { limit: 50 });
+      if (res.success && res.notifications) {
+        const mapped: AppNotification[] = res.notifications.map((n: any) => ({
+          id: n.id,
+          category: n.category,
+          title: n.title,
+          body: n.body,
+          time: new Date(n.time),
+          read: n.is_read || false,
+          extra: n.extra,
+          link: CATEGORY_LINKS[n.category] || undefined,
+        }));
 
-  const addNotification = useCallback((notif: AppNotification) => {
-    setNotifications(prev => {
-      const updated = [notif, ...prev].slice(0, 50);
-      saveNotifications(updated);
-      return updated;
-    });
-    showBrowserNotification(notif);
-    playSound();
+        // Check for NEW notifications (not seen before)
+        const newIds = mapped
+          .filter(n => !n.read && !lastFetchRef.current.includes(n.id))
+          .map(n => n.id);
+        
+        if (newIds.length > 0 && lastFetchRef.current.length > 0) {
+          // New notification arrived — play sound & show browser notification
+          const newest = mapped.find(n => n.id === newIds[0]);
+          if (newest) {
+            showBrowserNotification(newest);
+            playSound();
+          }
+        }
+
+        lastFetchRef.current = mapped.map(n => n.id);
+        setNotifications(mapped);
+        setUnreadCount(mapped.filter(n => !n.read).length);
+      }
+    } catch (err) {
+      console.error("Failed to fetch notifications:", err);
+    }
   }, []);
 
-  const markAsRead = useCallback((id: string) => {
-    setNotifications(prev => {
-      const updated = prev.map(n => n.id === id ? { ...n, read: true } : n);
-      saveNotifications(updated);
-      return updated;
-    });
+  // Mark single as read
+  const markAsRead = useCallback(async (id: string) => {
+    try {
+      await adminAPI("admin_notification_read", { notification_id: id });
+      setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
+      setUnreadCount(prev => Math.max(0, prev - 1));
+    } catch {}
   }, []);
 
-  const markAllAsRead = useCallback(() => {
-    setNotifications(prev => {
-      const updated = prev.map(n => ({ ...n, read: true }));
-      saveNotifications(updated);
-      return updated;
-    });
+  // Mark all as read
+  const markAllAsRead = useCallback(async (category?: string) => {
+    try {
+      await adminAPI("admin_notifications_read_all", category ? { category } : {});
+      setNotifications(prev => prev.map(n => 
+        (!category || n.category === category) ? { ...n, read: true } : n
+      ));
+      setUnreadCount(0);
+    } catch {}
   }, []);
 
   const clearAll = useCallback(() => {
-    setNotifications([]);
-    sessionStorage.removeItem(STORAGE_KEY);
-  }, []);
+    markAllAsRead();
+  }, [markAllAsRead]);
 
   const enableBrowserNotifications = useCallback(async () => {
     const granted = await requestPermission();
@@ -150,38 +169,22 @@ export function useNotifications(enabled = true) {
     return granted;
   }, []);
 
-  // Demo mode: generate random notifications every 15-30s
+  // Poll every 15 seconds
   useEffect(() => {
     if (!enabled) return;
     
-    // Add initial demo notifications
-    const isDemoMode = localStorage.getItem("ghala_demo") === "1";
-    if (isDemoMode && notifications.length === 0) {
-      const initial = Array.from({ length: 5 }, () => {
-        const n = createDemoNotification();
-        n.time = new Date(Date.now() - Math.random() * 3600000);
-        return n;
-      }).sort((a, b) => b.time.getTime() - a.time.getTime());
-      setNotifications(initial);
-      saveNotifications(initial);
-    }
-
-    if (isDemoMode) {
-      intervalRef.current = setInterval(() => {
-        const notif = createDemoNotification();
-        addNotification(notif);
-      }, 15000 + Math.random() * 15000);
-    }
+    fetchNotifications();
+    intervalRef.current = setInterval(fetchNotifications, 15000);
 
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
-  }, [enabled]);
+  }, [enabled, fetchNotifications]);
 
   return {
     notifications,
     unreadCount,
-    addNotification,
+    addNotification: () => {}, // Not needed — API-driven
     markAsRead,
     markAllAsRead,
     clearAll,
