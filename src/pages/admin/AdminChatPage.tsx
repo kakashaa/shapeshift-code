@@ -4,20 +4,7 @@ import { Send, ArrowRight, CheckCheck, Users } from "lucide-react";
 import { api } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
 import { motion } from "framer-motion";
-
-const avatarColors = [
-  "from-purple-500 to-indigo-600",
-  "from-emerald-500 to-teal-600",
-  "from-amber-500 to-orange-600",
-  "from-pink-500 to-rose-600",
-  "from-cyan-500 to-blue-600",
-  "from-lime-500 to-green-600",
-];
-
-function getAvatarColor(name: string) {
-  const hash = name.split("").reduce((a, c) => a + c.charCodeAt(0), 0);
-  return avatarColors[hash % avatarColors.length];
-}
+import { UserAvatar } from "@/components/UserAvatar";
 
 export default function AdminChatPage() {
   const navigate = useNavigate();
