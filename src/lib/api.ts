@@ -53,6 +53,12 @@ function extractArray(data: any): any[] {
 }
 
 async function request<T>(action: string, params: Record<string, any> = {}, method: "GET" | "POST" = "GET"): Promise<T> {
+  // In demo mode, throw to trigger catch blocks with mock data
+  if (isDemoMode()) {
+    await new Promise(r => setTimeout(r, 300 + Math.random() * 400)); // simulate latency
+    throw new Error("DEMO_MODE");
+  }
+
   const token = getToken();
   
   const url = method === "GET"
