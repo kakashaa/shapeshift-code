@@ -3,8 +3,9 @@ import { motion } from "framer-motion";
 import { PageHeader } from "@/components/PageHeader";
 import {
   Users, DollarSign, AlertTriangle, TrendingUp, TrendingDown,
-  Activity, Eye, UserPlus, ShieldAlert, Zap
+  Activity, Eye, UserPlus, ShieldAlert, Zap, Download
 } from "lucide-react";
+import { exportToCSV, exportToPDF } from "@/lib/export";
 import {
   AreaChart, Area, BarChart, Bar, LineChart, Line,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -91,6 +92,32 @@ export default function AnalyticsPage() {
     transition: { delay, duration: 0.3 },
   });
 
+  const handleExport = (format: "csv" | "pdf") => {
+    if (tab === "users") {
+      const data = userGrowth;
+      if (format === "csv") {
+        exportToCSV(data.map(d => ({ الشهر: d.month, إجمالي: d.users, نشط: d.active })), "analytics-users");
+      } else {
+        exportToPDF("إحصائيات المستخدمين", ["نشط", "إجمالي", "الشهر"],
+          data.map(d => [d.active, d.users, d.month]), "analytics-users");
+      }
+    } else if (tab === "charges") {
+      if (format === "csv") {
+        exportToCSV(dailyCharges.map(d => ({ اليوم: d.day, المبلغ: d.amount, العمليات: d.count })), "analytics-charges");
+      } else {
+        exportToPDF("إحصائيات الشحنات", ["العمليات", "المبلغ ($)", "اليوم"],
+          dailyCharges.map(d => [d.count, d.amount, d.day]), "analytics-charges");
+      }
+    } else {
+      if (format === "csv") {
+        exportToCSV(reportsByType.map(r => ({ النوع: r.name, العدد: r.value })), "analytics-reports");
+      } else {
+        exportToPDF("إحصائيات البلاغات", ["العدد", "النوع"],
+          reportsByType.map(r => [r.value, r.name]), "analytics-reports");
+      }
+    }
+  };
+
   const tabs: { key: Tab; label: string; icon: string }[] = [
     { key: "users", label: "المستخدمين", icon: "👥" },
     { key: "charges", label: "الشحنات", icon: "💳" },
@@ -99,7 +126,16 @@ export default function AnalyticsPage() {
 
   return (
     <div className="pb-20">
-      <PageHeader title="الإحصائيات" />
+      <PageHeader title="الإحصائيات" actions={
+        <div className="flex gap-1.5">
+          <button onClick={() => handleExport("csv")} className="w-8 h-8 rounded-xl bg-secondary/80 flex items-center justify-center active:scale-90 transition-all hover:bg-secondary" title="CSV">
+            <Download className="w-3.5 h-3.5 text-muted-foreground" />
+          </button>
+          <button onClick={() => handleExport("pdf")} className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center active:scale-90 transition-all hover:bg-primary/20" title="PDF">
+            <Download className="w-3.5 h-3.5 text-primary" />
+          </button>
+        </div>
+      } />
 
       {/* Tab switcher */}
       <div className="flex gap-1.5 px-4 py-3">

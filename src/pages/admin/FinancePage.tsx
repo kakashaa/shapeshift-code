@@ -5,7 +5,8 @@ import { PageHeader } from "@/components/PageHeader";
 import { CardSkeleton } from "@/components/LoadingSkeleton";
 import { PullToRefresh } from "@/components/PullToRefresh";
 import { UserAvatar } from "@/components/UserAvatar";
-import { TrendingUp, TrendingDown, DollarSign, Users, ArrowUpRight } from "lucide-react";
+import { TrendingUp, TrendingDown, DollarSign, Users, ArrowUpRight, Download } from "lucide-react";
+import { exportToCSV, exportToPDF } from "@/lib/export";
 import {
   AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, PieChart, Pie, Cell,
@@ -101,10 +102,49 @@ export default function FinancePage() {
     transition: { delay, duration: 0.3 },
   });
 
+  const handleExport = (format: "csv" | "pdf") => {
+    if (tab === "charges" && chargeData) {
+      const rows = chargeData.charges.map((c: any) => ({
+        الاسم: c.charger_name, المستخدم: c.user_name, المبلغ: c.amount_usd, النوع: c.charge_type, الوقت: c.time,
+      }));
+      if (format === "csv") {
+        exportToCSV(rows, `charges-${chargeDate}`);
+      } else {
+        exportToPDF("تقرير الشحنات", ["الوقت", "النوع", "المبلغ ($)", "المستخدم", "الاسم"],
+          chargeData.charges.map((c: any) => [c.time, c.charge_type, c.amount_usd, c.user_name, c.charger_name]),
+          `charges-${chargeDate}`,
+          [{ label: "الإجمالي", value: `$${chargeData.stats.total_usd}` }, { label: "العمليات", value: String(chargeData.stats.count) }]
+        );
+      }
+    } else if (tab === "salaries" && salaryData) {
+      const rows = salaryData.users.map((u: any) => ({
+        الاسم: u.name, الراتب: u.salary, الخصم: u.deduction, الصافي: u.remaining,
+      }));
+      if (format === "csv") {
+        exportToCSV(rows, `salaries-${salaryMonth}`);
+      } else {
+        exportToPDF("تقرير الرواتب", ["الصافي ($)", "الخصم ($)", "الراتب ($)", "الاسم"],
+          salaryData.users.map((u: any) => [u.remaining, u.deduction, u.salary, u.name]),
+          `salaries-${salaryMonth}`,
+          [{ label: "الإجمالي", value: `$${salaryData.stats.total}` }, { label: "الصافي", value: `$${salaryData.stats.net}` }]
+        );
+      }
+    }
+  };
+
   return (
     <PullToRefresh onRefresh={handleRefresh}>
       <div className="pb-20">
-        <PageHeader title="المالية" />
+        <PageHeader title="المالية" actions={
+          <div className="flex gap-1.5">
+            <button onClick={() => handleExport("csv")} className="w-8 h-8 rounded-xl bg-secondary/80 flex items-center justify-center active:scale-90 transition-all hover:bg-secondary" title="CSV">
+              <Download className="w-3.5 h-3.5 text-muted-foreground" />
+            </button>
+            <button onClick={() => handleExport("pdf")} className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center active:scale-90 transition-all hover:bg-primary/20" title="PDF">
+              <Download className="w-3.5 h-3.5 text-primary" />
+            </button>
+          </div>
+        } />
 
         {/* Tabs */}
         <div className="flex gap-2 px-4 py-3">
