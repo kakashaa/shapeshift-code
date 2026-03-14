@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { api } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
 import { CardSkeleton } from "@/components/LoadingSkeleton";
+import { UserAvatar } from "@/components/UserAvatar";
 
 export default function UserDashboard() {
   const [profile, setProfile] = useState<any>(null);
@@ -34,9 +35,7 @@ export default function UserDashboard() {
     <div className="pb-20">
       {/* Profile header */}
       <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="text-center pt-6 pb-3 px-4">
-        <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary to-accent mx-auto flex items-center justify-center text-2xl font-bold text-primary-foreground mb-2">
-          {profile.name[0]}
-        </div>
+        <UserAvatar name={profile.name} uuid={profile.uuid} size="xl" className="mx-auto mb-2" online />
         <h1 className="text-base font-bold">{profile.name}</h1>
         <p className="text-[11px] text-muted-foreground">UUID: {profile.uuid}</p>
         <span className="inline-block mt-1 px-2 py-0.5 rounded-full text-[10px] bg-emerald-500/15 text-emerald-400">🟢 نشط</span>

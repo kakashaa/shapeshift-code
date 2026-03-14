@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { api } from "@/lib/api";
 import { PageHeader } from "@/components/PageHeader";
 import { toast } from "@/hooks/use-toast";
+import { UserAvatar } from "@/components/UserAvatar";
 
 export default function UserSearchPage() {
   const [query, setQuery] = useState("");
@@ -82,7 +83,7 @@ export default function UserSearchPage() {
           <motion.div key="detail" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} className="p-4 space-y-4">
             <button onClick={() => setSelectedUser(null)} className="text-sm text-primary">← العودة للنتائج</button>
             <div className="text-center space-y-2">
-              <div className="w-20 h-20 rounded-full bg-secondary mx-auto flex items-center justify-center text-2xl font-bold">{selectedUser.name[0]}</div>
+              <UserAvatar name={selectedUser.name} uuid={selectedUser.uuid} size="xl" className="mx-auto" online={!selectedUser.is_banned} />
               <h2 className="text-xl font-bold">{selectedUser.name}</h2>
               <p className="text-sm text-muted-foreground">UUID: {selectedUser.uuid}</p>
               <span className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${selectedUser.is_banned ? "bg-destructive/20 text-destructive" : "bg-success/20 text-success"}`}>
@@ -128,7 +129,7 @@ export default function UserSearchPage() {
           <motion.div key="results" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="px-4 space-y-1">
             {results.map(u => (
               <button key={u.uuid} onClick={() => loadUserDetail(u.uuid)} className="w-full flex items-center gap-3 px-4 py-3 bg-card rounded-xl active:bg-secondary transition-colors">
-                <div className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center font-bold">{u.name[0]}</div>
+                <UserAvatar name={u.name} uuid={u.uuid} size="md" />
                 <div className="text-right">
                   <p className="text-sm font-semibold">{u.name}</p>
                   <p className="text-xs text-muted-foreground">UUID: {u.uuid}</p>

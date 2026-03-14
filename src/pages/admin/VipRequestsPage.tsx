@@ -6,6 +6,7 @@ import { CardSkeleton } from "@/components/LoadingSkeleton";
 import { EmptyState } from "@/components/EmptyState";
 import { Star, Check, X } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import { UserAvatar } from "@/components/UserAvatar";
 
 export default function VipRequestsPage() {
   const [requests, setRequests] = useState<any[]>([]);
@@ -39,9 +40,7 @@ export default function VipRequestsPage() {
               className="bg-card/70 rounded-2xl p-3 border border-border/30">
               {/* User info */}
               <div className="flex items-center gap-2.5 mb-2">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-amber-500/30 to-amber-500/10 flex items-center justify-center text-sm font-bold shrink-0">
-                  {r.user_name[0]}
-                </div>
+                <UserAvatar name={r.user_name} uuid={r.user_uuid} size="md" badge="⭐" />
                 <div className="flex-1 min-w-0">
                   <p className="text-[12px] font-semibold">{r.user_name}</p>
                   <p className="text-[10px] text-muted-foreground">UUID: {r.user_uuid} • Lv.{r.level}</p>

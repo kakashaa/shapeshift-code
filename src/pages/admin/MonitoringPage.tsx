@@ -6,6 +6,7 @@ import { CardSkeleton } from "@/components/LoadingSkeleton";
 import { EmptyState } from "@/components/EmptyState";
 import { Eye, Ban, X } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import { UserAvatar } from "@/components/UserAvatar";
 
 export default function MonitoringPage() {
   const [messages, setMessages] = useState<any[]>([]);
@@ -65,12 +66,12 @@ export default function MonitoringPage() {
                 {/* Users */}
                 <div className="flex items-center gap-2 mb-2 text-[12px]">
                   <div className="flex items-center gap-1.5">
-                    <div className="w-6 h-6 rounded-full bg-gradient-to-br from-red-500/30 to-red-500/10 flex items-center justify-center text-[10px] font-bold">{msg.sender_name[0]}</div>
+                    <UserAvatar name={msg.sender_name} uuid={msg.sender_uuid} size="xs" />
                     <span>{msg.sender_name}</span>
                   </div>
                   <span className="text-muted-foreground text-[10px]">→</span>
                   <div className="flex items-center gap-1.5">
-                    <div className="w-6 h-6 rounded-full bg-gradient-to-br from-primary/30 to-primary/10 flex items-center justify-center text-[10px] font-bold">{msg.receiver_name[0]}</div>
+                    <UserAvatar name={msg.receiver_name} uuid={msg.receiver_uuid} size="xs" />
                     <span>{msg.receiver_name}</span>
                   </div>
                 </div>
@@ -80,7 +81,7 @@ export default function MonitoringPage() {
                   <p className="text-[11px] leading-relaxed text-muted-foreground">"{msg.message}"</p>
                 </div>
 
-                {/* Actions - compact icon buttons */}
+                {/* Actions */}
                 {msg.actioned ? (
                   <p className="text-[10px] text-destructive text-center">🚫 تم الحظر</p>
                 ) : (

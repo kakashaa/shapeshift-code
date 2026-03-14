@@ -4,20 +4,7 @@ import { Send, ArrowRight, CheckCheck, Users } from "lucide-react";
 import { api } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
 import { motion } from "framer-motion";
-
-const avatarColors = [
-  "from-purple-500 to-indigo-600",
-  "from-emerald-500 to-teal-600",
-  "from-amber-500 to-orange-600",
-  "from-pink-500 to-rose-600",
-  "from-cyan-500 to-blue-600",
-  "from-lime-500 to-green-600",
-];
-
-function getAvatarColor(name: string) {
-  const hash = name.split("").reduce((a, c) => a + c.charCodeAt(0), 0);
-  return avatarColors[hash % avatarColors.length];
-}
+import { UserAvatar } from "@/components/UserAvatar";
 
 export default function AdminChatPage() {
   const navigate = useNavigate();
@@ -110,7 +97,6 @@ export default function AdminChatPage() {
 
           {groupedMessages.map((msg, i) => {
             const mine = isMe(msg.admin_name);
-            const colorClass = getAvatarColor(msg.admin_name);
 
             return (
               <motion.div
@@ -118,14 +104,12 @@ export default function AdminChatPage() {
                 initial={{ opacity: 0, y: 6 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.15, delay: i * 0.02 }}
-                className={`flex items-end gap-1.5 ${mine ? "justify-start" : "justify-start"} ${msg.isLast ? "mb-2" : "mb-0.5"}`}
+                className={`flex items-end gap-1.5 ${msg.isLast ? "mb-2" : "mb-0.5"}`}
               >
                 {/* Avatar - only on last message of group */}
                 <div className="w-7 shrink-0">
                   {msg.isLast ? (
-                    <div className={`w-7 h-7 rounded-full bg-gradient-to-br ${colorClass} flex items-center justify-center`}>
-                      <span className="text-[10px] font-bold text-white">{msg.admin_name.charAt(0)}</span>
-                    </div>
+                    <UserAvatar name={msg.admin_name} size="xs" />
                   ) : null}
                 </div>
 
@@ -141,7 +125,7 @@ export default function AdminChatPage() {
                 }`}>
                   {/* Sender name - only on first message */}
                   {msg.isFirst && (
-                    <p className={`text-[10px] font-bold mb-0.5 bg-gradient-to-r ${colorClass} bg-clip-text text-transparent`}>
+                    <p className="text-[10px] font-bold mb-0.5 text-primary">
                       {msg.admin_name}
                       {mine && " (أنت)"}
                     </p>

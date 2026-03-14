@@ -1,10 +1,11 @@
 import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Send, ArrowRight, Phone, MoreVertical, CheckCheck, X, Clock } from "lucide-react";
+import { Send, ArrowRight, MoreVertical, CheckCheck, X } from "lucide-react";
 import { api } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
 import { motion, AnimatePresence } from "framer-motion";
+import { UserAvatar } from "@/components/UserAvatar";
 
 export default function SupportChatPage() {
   const { ticketId } = useParams();
@@ -48,13 +49,8 @@ export default function SupportChatPage() {
       time: new Date().toLocaleTimeString("ar", { hour: "2-digit", minute: "2-digit" }),
       status: "sent"
     };
-    try {
-      await api.supportReply(Number(ticketId), message);
-    } catch {}
-    setChat((prev: any) => ({
-      ...prev,
-      messages: [...prev.messages, newMsg],
-    }));
+    try { await api.supportReply(Number(ticketId), message); } catch {}
+    setChat((prev: any) => ({ ...prev, messages: [...prev.messages, newMsg] }));
     setMessage("");
     setSending(false);
     inputRef.current?.focus();
@@ -62,14 +58,10 @@ export default function SupportChatPage() {
 
   const handleClose = async () => {
     setShowMenu(false);
-    try {
-      await api.supportClose(Number(ticketId));
-    } catch {}
+    try { await api.supportClose(Number(ticketId)); } catch {}
     toast({ title: "✅ تم إغلاق التذكرة" });
     navigate(-1);
   };
-
-  const getInitial = (n: string) => n?.charAt(0) || "؟";
 
   if (!chat) {
     return (
@@ -82,7 +74,6 @@ export default function SupportChatPage() {
     );
   }
 
-  // Group messages by time proximity for tail styling
   const groupedMessages = chat.messages.map((msg: any, i: number) => {
     const next = chat.messages[i + 1];
     const isLast = !next || next.sender !== msg.sender;
@@ -91,28 +82,16 @@ export default function SupportChatPage() {
 
   return (
     <div className="min-h-screen bg-background flex flex-col h-screen">
-      {/* WhatsApp-style Header */}
+      {/* Header */}
       <div className="bg-card border-b border-border px-3 py-2.5 flex items-center gap-3 sticky top-0 z-20">
         <button onClick={() => navigate(-1)} className="p-1 -mr-1 rounded-full hover:bg-secondary transition-colors">
           <ArrowRight className="w-5 h-5 text-muted-foreground" />
         </button>
-
-        {/* Avatar */}
-        <div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary/80 to-accent flex items-center justify-center text-primary-foreground text-sm font-bold shrink-0">
-          {chat.user.avatar ? (
-            <img src={chat.user.avatar} className="w-full h-full rounded-full object-cover" />
-          ) : (
-            getInitial(chat.user.name)
-          )}
-        </div>
-
-        {/* Info */}
+        <UserAvatar name={chat.user.name} uuid={chat.user.uuid} src={chat.user.avatar || undefined} size="sm" online />
         <div className="flex-1 min-w-0">
           <h3 className="text-sm font-semibold text-foreground truncate">{chat.user.name}</h3>
           <p className="text-[10px] text-muted-foreground">تذكرة #{ticketId}</p>
         </div>
-
-        {/* Actions */}
         <div className="relative">
           <button onClick={() => setShowMenu(!showMenu)} className="p-1.5 rounded-full hover:bg-secondary transition-colors">
             <MoreVertical className="w-4 h-4 text-muted-foreground" />
@@ -139,21 +118,15 @@ export default function SupportChatPage() {
         </div>
       </div>
 
-      {/* Chat Background Pattern */}
+      {/* Chat Area */}
       <div className="flex-1 overflow-y-auto relative" style={{ background: "hsl(var(--background))" }}>
-        {/* Subtle pattern overlay */}
         <div className="absolute inset-0 opacity-[0.03]" style={{
           backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
         }} />
-
         <div className="relative p-3 space-y-1 pb-4">
-          {/* Date separator */}
           <div className="flex justify-center my-3">
-            <span className="bg-card/80 backdrop-blur-sm text-[10px] text-muted-foreground px-3 py-1 rounded-full border border-border/50">
-              اليوم
-            </span>
+            <span className="bg-card/80 backdrop-blur-sm text-[10px] text-muted-foreground px-3 py-1 rounded-full border border-border/50">اليوم</span>
           </div>
-
           {groupedMessages.map((msg: any, i: number) => {
             const isAdmin = msg.sender === "admin";
             return (
@@ -169,18 +142,6 @@ export default function SupportChatPage() {
                     ? "bg-primary text-primary-foreground rounded-t-2xl rounded-bl-sm rounded-br-2xl"
                     : "bg-card text-foreground rounded-t-2xl rounded-br-sm rounded-bl-2xl border border-border/50"
                 } ${!msg.isLast ? "mb-0.5" : "mb-1"}`}>
-                  {/* Tail */}
-                  {msg.isLast && isAdmin && (
-                    <div className="absolute bottom-0 -left-1.5 w-3 h-3 overflow-hidden">
-                      <div className="w-3 h-3 bg-primary transform rotate-45 translate-x-1.5" />
-                    </div>
-                  )}
-                  {msg.isLast && !isAdmin && (
-                    <div className="absolute bottom-0 -right-1.5 w-3 h-3 overflow-hidden">
-                      <div className="w-3 h-3 bg-card border-r border-b border-border/50 transform rotate-45 -translate-x-1.5" />
-                    </div>
-                  )}
-
                   {isAdmin && msg.admin_name && (
                     <p className="text-[10px] font-semibold text-primary-foreground/70 mb-0.5">{msg.admin_name}</p>
                   )}
@@ -197,7 +158,7 @@ export default function SupportChatPage() {
         </div>
       </div>
 
-      {/* WhatsApp-style Input Bar */}
+      {/* Input */}
       <div className="bg-card/95 backdrop-blur-sm border-t border-border px-3 py-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] mb-14">
         <div className="flex items-end gap-2">
           <div className="flex-1 bg-secondary rounded-2xl flex items-end">

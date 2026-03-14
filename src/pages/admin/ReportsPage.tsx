@@ -6,6 +6,7 @@ import { CardSkeleton } from "@/components/LoadingSkeleton";
 import { EmptyState } from "@/components/EmptyState";
 import { AlertTriangle, Check, X } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import { UserAvatar } from "@/components/UserAvatar";
 
 export default function ReportsPage() {
   const [reports, setReports] = useState<any[]>([]);
@@ -44,12 +45,12 @@ export default function ReportsPage() {
                 <div className="flex items-center gap-2">
                   <div className="flex items-center gap-1.5">
                     <span className="text-[11px] font-medium">{r.reporter_name}</span>
-                    <div className="w-6 h-6 rounded-full bg-secondary flex items-center justify-center text-[9px] font-bold">{r.reporter_name[0]}</div>
+                    <UserAvatar name={r.reporter_name} uuid={r.reporter_uuid} size="xs" />
                   </div>
                   <span className="text-[10px] text-muted-foreground">→</span>
                   <div className="flex items-center gap-1.5">
                     <span className="text-[11px] font-medium text-destructive">{r.reported_name}</span>
-                    <div className="w-6 h-6 rounded-full bg-destructive/20 flex items-center justify-center text-[9px] font-bold text-destructive">{r.reported_name[0]}</div>
+                    <UserAvatar name={r.reported_name} uuid={r.reported_uuid} size="xs" />
                   </div>
                 </div>
               </div>

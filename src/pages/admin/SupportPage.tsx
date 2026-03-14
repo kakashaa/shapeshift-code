@@ -6,6 +6,7 @@ import { PageHeader } from "@/components/PageHeader";
 import { CardSkeleton } from "@/components/LoadingSkeleton";
 import { EmptyState } from "@/components/EmptyState";
 import { Headphones } from "lucide-react";
+import { UserAvatar } from "@/components/UserAvatar";
 
 export default function SupportPage() {
   const [tickets, setTickets] = useState<any[]>([]);
@@ -55,14 +56,7 @@ export default function SupportPage() {
               onClick={() => navigate(`/support/${t.ticket_id}`)}
               className="w-full flex items-center gap-2.5 px-3 py-2.5 bg-card/60 rounded-xl active:bg-secondary/50 transition-colors text-right border border-border/30"
             >
-              <div className="relative shrink-0">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary/30 to-accent/20 flex items-center justify-center text-sm font-bold">
-                  {t.user_name[0]}
-                </div>
-                {t.status === "new" && (
-                  <div className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-400 border-2 border-background" />
-                )}
-              </div>
+              <UserAvatar name={t.user_name} uuid={t.user_uuid} size="md" online={t.status === "new"} />
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between">
                   <span className="text-[10px] text-muted-foreground">{t.time}</span>
