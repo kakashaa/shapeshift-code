@@ -28,9 +28,8 @@ export default function LoginPage() {
       >
         {/* Logo */}
         <div className="text-center space-y-3">
-          <div className="w-20 h-20 rounded-3xl mx-auto flex items-center justify-center glow-border relative"
-            style={{ background: "var(--gradient-primary)" }}>
-            <span className="text-3xl font-bold text-primary-foreground">G</span>
+          <div className="w-20 h-20 rounded-3xl mx-auto flex items-center justify-center glow-border relative overflow-hidden">
+            <img src={logo} alt="GhalaLive" className="w-full h-full object-contain" />
           </div>
           <div>
             <h1 className="text-2xl font-bold tracking-tight">GhalaLive</h1>
