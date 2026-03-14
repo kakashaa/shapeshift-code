@@ -102,6 +102,36 @@ export default function FinancePage() {
     transition: { delay, duration: 0.3 },
   });
 
+  const handleExport = (format: "csv" | "pdf") => {
+    if (tab === "charges" && chargeData) {
+      const rows = chargeData.charges.map((c: any) => ({
+        الاسم: c.charger_name, المستخدم: c.user_name, المبلغ: c.amount_usd, النوع: c.charge_type, الوقت: c.time,
+      }));
+      if (format === "csv") {
+        exportToCSV(rows, `charges-${chargeDate}`);
+      } else {
+        exportToPDF("تقرير الشحنات", ["الوقت", "النوع", "المبلغ ($)", "المستخدم", "الاسم"],
+          chargeData.charges.map((c: any) => [c.time, c.charge_type, c.amount_usd, c.user_name, c.charger_name]),
+          `charges-${chargeDate}`,
+          [{ label: "الإجمالي", value: `$${chargeData.stats.total_usd}` }, { label: "العمليات", value: String(chargeData.stats.count) }]
+        );
+      }
+    } else if (tab === "salaries" && salaryData) {
+      const rows = salaryData.users.map((u: any) => ({
+        الاسم: u.name, الراتب: u.salary, الخصم: u.deduction, الصافي: u.remaining,
+      }));
+      if (format === "csv") {
+        exportToCSV(rows, `salaries-${salaryMonth}`);
+      } else {
+        exportToPDF("تقرير الرواتب", ["الصافي ($)", "الخصم ($)", "الراتب ($)", "الاسم"],
+          salaryData.users.map((u: any) => [u.remaining, u.deduction, u.salary, u.name]),
+          `salaries-${salaryMonth}`,
+          [{ label: "الإجمالي", value: `$${salaryData.stats.total}` }, { label: "الصافي", value: `$${salaryData.stats.net}` }]
+        );
+      }
+    }
+  };
+
   return (
     <PullToRefresh onRefresh={handleRefresh}>
       <div className="pb-20">
