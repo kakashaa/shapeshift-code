@@ -10,6 +10,7 @@ import { UserBottomNav } from "@/components/UserBottomNav";
 import { AnimatedPage, AnimatedRouteWrapper } from "@/components/AnimatedRoutes";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { SplashScreen } from "@/components/SplashScreen";
+import { DemoBanner } from "@/components/DemoBanner";
 
 // Pages
 import LoginPage from "@/pages/LoginPage";
@@ -41,6 +42,7 @@ const queryClient = new QueryClient();
 function AdminLayout() {
   return (
     <div className="max-w-lg mx-auto min-h-screen bg-background">
+      <DemoBanner />
       <ErrorBoundary>
         <AnimatedPage>
           <Outlet />
@@ -54,6 +56,7 @@ function AdminLayout() {
 function UserLayout() {
   return (
     <div className="max-w-lg mx-auto min-h-screen bg-background">
+      <DemoBanner />
       <ErrorBoundary>
         <AnimatedPage>
           <Outlet />

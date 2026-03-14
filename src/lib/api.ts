@@ -1,5 +1,14 @@
 const API_BASE = "https://hola-chat.com/admin-panel-api.php";
 
+export function isDemoMode(): boolean {
+  return localStorage.getItem("ghala_demo") === "1";
+}
+
+export function setDemoMode(on: boolean) {
+  if (on) localStorage.setItem("ghala_demo", "1");
+  else localStorage.removeItem("ghala_demo");
+}
+
 function getToken(): string | null {
   return localStorage.getItem("ghala_token");
 }
@@ -24,6 +33,7 @@ export function saveSession(token: string, type: string, name: string, extra?: R
 export function clearSession() {
   const keys = Object.keys(localStorage).filter(k => k.startsWith("ghala_"));
   keys.forEach(k => localStorage.removeItem(k));
+  localStorage.removeItem("ghala_demo");
 }
 
 export function isLoggedIn(): boolean {
@@ -43,6 +53,13 @@ function extractArray(data: any): any[] {
 }
 
 async function request<T>(action: string, params: Record<string, any> = {}, method: "GET" | "POST" = "GET"): Promise<T> {
+  // In demo mode: POST actions return success, GET actions throw to trigger mock data in catch blocks
+  if (isDemoMode()) {
+    await new Promise(r => setTimeout(r, 200 + Math.random() * 300));
+    if (method === "POST") return { success: true, message: "تم (وضع تجريبي)" } as T;
+    throw new Error("DEMO_MODE");
+  }
+
   const token = getToken();
   
   const url = method === "GET"
