@@ -240,6 +240,10 @@ export const api = {
   adminNotificationsReadAll: (category?: string) =>
     request<any>("admin_notifications_read_all", category ? { category } : {}, "POST"),
 
+  // V2: User login with password (HMAC)
+  userLoginPassword: (uuid: string, password: string) =>
+    request<any>("user_login_password", { uuid, password }, "POST"),
+
   // V2: Password change
   changePassword: (old_password: string, new_password: string, phone?: string) =>
     request<any>("change_password", { old_password, new_password, ...(phone ? { phone } : {}) }, "POST"),
