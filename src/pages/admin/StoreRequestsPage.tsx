@@ -173,7 +173,7 @@ export default function StoreRequestsPage() {
     else return; // frame/entry claims don't have approve flow
 
     const { error } = await supabase
-      .from(table)
+      .from(table as any)
       .update({ status: "approved" })
       .eq("id", req.id);
 
