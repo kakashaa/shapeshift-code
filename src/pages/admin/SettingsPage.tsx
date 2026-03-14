@@ -4,11 +4,13 @@ import { motion } from "framer-motion";
 import {
   ArrowRight, Sun, Moon, Monitor, Bell, BellOff, BellRing,
   Globe, User, Shield, LogOut, ChevronLeft, Volume2, VolumeX,
-  Smartphone, Palette
+  Smartphone, Palette, Send
 } from "lucide-react";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { Switch } from "@/components/ui/switch";
+import { subscribeToPush, unsubscribeFromPush, sendPushNotification } from "@/lib/pushNotifications";
+import { toast } from "@/hooks/use-toast";
 
 type Language = "ar" | "en";
 
@@ -27,6 +29,8 @@ export default function SettingsPage() {
   const [demoNotif, setDemoNotif] = useState(() =>
     localStorage.getItem("ghala_demo_notif") !== "0"
   );
+  const [pushEnabled, setPushEnabled] = useState(false);
+  const [pushLoading, setPushLoading] = useState(false);
 
   // Language
   const [language, setLanguage] = useState<Language>(() =>
@@ -48,6 +52,34 @@ export default function SettingsPage() {
   const handleDemoNotif = (val: boolean) => {
     setDemoNotif(val);
     localStorage.setItem("ghala_demo_notif", val ? "1" : "0");
+  };
+
+  const handlePushToggle = async (val: boolean) => {
+    setPushLoading(true);
+    try {
+      if (val) {
+        const success = await subscribeToPush();
+        setPushEnabled(success);
+        if (success) toast({ title: "✅ تم تفعيل إشعارات Push" });
+        else toast({ title: "❌ فشل تفعيل الإشعارات", variant: "destructive" });
+      } else {
+        await unsubscribeFromPush();
+        setPushEnabled(false);
+        toast({ title: "تم إيقاف إشعارات Push" });
+      }
+    } finally {
+      setPushLoading(false);
+    }
+  };
+
+  const handleTestPush = async () => {
+    const success = await sendPushNotification(
+      "🔔 تجربة إشعار",
+      "هذا إشعار تجريبي من GhalaLive!",
+      { tag: "test" }
+    );
+    if (success) toast({ title: "✅ تم إرسال الإشعار التجريبي" });
+    else toast({ title: "❌ فشل الإرسال", variant: "destructive" });
   };
 
   const handleLanguage = (lang: Language) => {
@@ -136,6 +168,31 @@ export default function SettingsPage() {
               enabled={demoNotif}
               onToggle={handleDemoNotif}
             />
+            {/* Push Notifications */}
+            <div className="px-4 py-3 flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3 flex-1 min-w-0">
+                <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                  <Send className="w-4 h-4 text-primary" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-[13px] font-semibold">إشعارات Push</p>
+                  <p className="text-[10px] text-muted-foreground leading-relaxed">
+                    {pushEnabled ? "مفعّلة — ستصلك إشعارات حتى لو التطبيق مغلق" : "تفعيل الإشعارات الفورية على جهازك"}
+                  </p>
+                </div>
+              </div>
+              <Switch checked={pushEnabled} onCheckedChange={handlePushToggle} disabled={pushLoading} />
+            </div>
+            {pushEnabled && (
+              <div className="px-4 pb-3">
+                <button
+                  onClick={handleTestPush}
+                  className="w-full h-9 rounded-xl bg-primary/10 text-primary text-[11px] font-semibold active:scale-95 transition-all"
+                >
+                  🔔 إرسال إشعار تجريبي
+                </button>
+              </div>
+            )}
           </div>
         </motion.div>
 
