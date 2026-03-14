@@ -37,6 +37,7 @@ import AnalyticsPage from "@/pages/admin/AnalyticsPage";
 import UserDashboard from "@/pages/user/UserDashboard";
 import UserChargesPage from "@/pages/user/UserChargesPage";
 import UserSalaryPage from "@/pages/user/UserSalaryPage";
+import InstallPage from "@/pages/InstallPage";
 import NotFound from "@/pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -85,6 +86,7 @@ function AppRoutes() {
       <Route path="/login" element={loggedIn ? <Navigate to={type === "user" ? "/user" : "/"} replace /> : <LoginPage />} />
       <Route path="/login/admin" element={<AdminLoginPage />} />
       <Route path="/login/user" element={<UserLoginPage />} />
+      <Route path="/install" element={<InstallPage />} />
 
       {/* Admin routes */}
       <Route element={<ProtectedRoute allowedType="admin"><AdminLayout /></ProtectedRoute>}>
