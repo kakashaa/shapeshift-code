@@ -1,3 +1,4 @@
+import { useState, useCallback } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Route, Routes, Navigate, Outlet, useLocation } from "react-router-dom";
 import { Toaster } from "@/components/ui/toaster";
@@ -8,6 +9,7 @@ import { BottomNav } from "@/components/BottomNav";
 import { UserBottomNav } from "@/components/UserBottomNav";
 import { AnimatedPage, AnimatedRouteWrapper } from "@/components/AnimatedRoutes";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { SplashScreen } from "@/components/SplashScreen";
 
 // Pages
 import LoginPage from "@/pages/LoginPage";
