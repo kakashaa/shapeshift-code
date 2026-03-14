@@ -77,7 +77,7 @@ export default function SupportChatPage() {
 
     // Load messages
     const { data: msgData } = await supabase
-      .from("ticket_messages")
+      .from("ticket_messages" as any)
       .select("*")
       .eq("ticket_id", ticketId)
       .order("created_at", { ascending: true });
