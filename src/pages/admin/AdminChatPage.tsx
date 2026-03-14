@@ -37,6 +37,14 @@ export default function AdminChatPage() {
   const inputRef = useRef<HTMLInputElement>(null);
   const username = localStorage.getItem("ghala_username") || localStorage.getItem("ghala_name") || "";
 
+  const ADMIN_NAMES: Record<string, string> = {
+    naz: "ناز", janjoon: "جنجون", fransi: "فرنسي", miftah: "مفتاح",
+    mars: "مارس", hamzawi: "حمزوي", relax: "ريلاكس", mali: "مالي شبيه",
+    bilal: "بلال", karamela: "كراميلا", mila: "ميلا", rofan: "روفان",
+    assaf_admin: "عساف", khamr: "خمر", rita: "ريتا", maha: "مها", marleen: "مارلين",
+  };
+  const getArabicName = (uname: string) => ADMIN_NAMES[uname] || uname;
+
   // Load chat list
   const loadChats = useCallback(async () => {
     try {
@@ -190,7 +198,7 @@ export default function AdminChatPage() {
                 <button key={sa} onClick={() => createChat(`owner_${sa}`)}
                   className="w-full flex items-center gap-3 p-3 bg-card/50 rounded-xl border border-dashed border-border">
                   <Plus className="w-4 h-4 text-muted-foreground" />
-                  <span className="text-sm text-muted-foreground">دردشة مع {sa}</span>
+                  <span className="text-sm text-muted-foreground">دردشة مع {getArabicName(sa)}</span>
                 </button>
               ))}
             </div>
