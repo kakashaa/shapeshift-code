@@ -25,10 +25,7 @@ export default function UserDashboard() {
     }).finally(() => setLoading(false));
   }, []);
 
-  const handleLogout = () => {
-    logout();
-    navigate("/login");
-  };
+  const handleLogout = () => { logout(); navigate("/login"); };
 
   if (loading) return <div className="pb-20"><CardSkeleton count={5} /></div>;
   if (!profile) return null;
@@ -36,66 +33,79 @@ export default function UserDashboard() {
   return (
     <div className="pb-20">
       {/* Profile header */}
-      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="text-center pt-8 pb-4 px-4">
-        <div className="w-20 h-20 rounded-full bg-gradient-to-br from-primary to-accent mx-auto flex items-center justify-center text-3xl font-bold text-primary-foreground mb-3">
+      <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="text-center pt-6 pb-3 px-4">
+        <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary to-accent mx-auto flex items-center justify-center text-2xl font-bold text-primary-foreground mb-2">
           {profile.name[0]}
         </div>
-        <h1 className="text-xl font-bold">{profile.name}</h1>
-        <p className="text-sm text-muted-foreground">UUID: {profile.uuid}</p>
-        <span className="inline-block mt-1 px-3 py-1 rounded-full text-xs bg-success/20 text-success">🟢 نشط</span>
+        <h1 className="text-base font-bold">{profile.name}</h1>
+        <p className="text-[11px] text-muted-foreground">UUID: {profile.uuid}</p>
+        <span className="inline-block mt-1 px-2 py-0.5 rounded-full text-[10px] bg-emerald-500/15 text-emerald-400">🟢 نشط</span>
       </motion.div>
 
-      <div className="px-4 space-y-3">
+      <div className="px-3 space-y-2">
         {/* Balance */}
-        <div className="bg-card rounded-2xl p-4 text-center">
-          <p className="text-xs text-muted-foreground">💰 الرصيد الحالي</p>
-          <p className="text-2xl font-black text-primary mt-1">{profile.balance?.toLocaleString()} كوينز</p>
+        <div className="bg-gradient-to-br from-primary/15 to-primary/5 rounded-2xl p-3 text-center border border-primary/20">
+          <p className="text-[10px] text-muted-foreground">💰 الرصيد</p>
+          <p className="text-xl font-black text-primary">{profile.balance?.toLocaleString()} كوينز</p>
         </div>
 
         {/* Salary */}
-        <div className="bg-card rounded-2xl p-4 space-y-2">
-          <p className="text-sm font-bold">📊 الراتب هذا الشهر</p>
-          <div className="flex justify-between text-sm">
+        <div className="bg-card/70 rounded-2xl p-3 space-y-1.5 border border-border/30">
+          <p className="text-[12px] font-bold">📊 الراتب</p>
+          <div className="flex justify-between text-[11px]">
             <span>${profile.current_salary.salary}</span><span className="text-muted-foreground">الراتب</span>
           </div>
-          <div className="flex justify-between text-sm">
-            <span className="text-destructive">-${profile.current_salary.deduction}</span><span className="text-muted-foreground">القطع</span>
-          </div>
-          <div className="border-t border-border pt-2 flex justify-between text-sm font-bold">
-            <span className="text-success">${profile.current_salary.net}</span><span>الصافي</span>
+          {profile.current_salary.deduction > 0 && (
+            <div className="flex justify-between text-[11px]">
+              <span className="text-destructive">-${profile.current_salary.deduction}</span><span className="text-muted-foreground">القطع</span>
+            </div>
+          )}
+          <div className="border-t border-border/50 pt-1.5 flex justify-between text-[12px] font-bold">
+            <span className="text-emerald-400">${profile.current_salary.net}</span><span>الصافي</span>
           </div>
         </div>
 
         {/* Support */}
-        <div className="bg-card rounded-2xl p-4 space-y-2">
-          <p className="text-sm font-bold">🎁 الدعم هذا الشهر</p>
-          <div className="flex justify-between text-sm">
-            <span>{profile.monthly_sent?.toLocaleString()} كوينز</span><span className="text-muted-foreground">أرسلت</span>
-          </div>
-          <div className="flex justify-between text-sm">
-            <span>{profile.monthly_received?.toLocaleString()} كوينز</span><span className="text-muted-foreground">استلمت</span>
+        <div className="bg-card/70 rounded-2xl p-3 border border-border/30">
+          <p className="text-[12px] font-bold mb-1.5">🎁 الدعم</p>
+          <div className="grid grid-cols-2 gap-2 text-center">
+            <div className="bg-background/50 rounded-lg p-2">
+              <p className="text-sm font-bold">{(profile.monthly_sent / 1000).toFixed(0)}K</p>
+              <p className="text-[9px] text-muted-foreground">أرسلت</p>
+            </div>
+            <div className="bg-background/50 rounded-lg p-2">
+              <p className="text-sm font-bold">{(profile.monthly_received / 1000000).toFixed(1)}M</p>
+              <p className="text-[9px] text-muted-foreground">استلمت</p>
+            </div>
           </div>
         </div>
 
         {/* Levels */}
-        <div className="bg-card rounded-2xl p-4 space-y-2">
-          <p className="text-sm font-bold">📈 المستويات</p>
-          <div className="grid grid-cols-3 gap-2 text-center">
-            <div><p className="text-lg font-bold">{profile.sender_level}</p><p className="text-[10px] text-muted-foreground">إرسال</p></div>
-            <div><p className="text-lg font-bold">{profile.received_level}</p><p className="text-[10px] text-muted-foreground">استلام</p></div>
-            <div><p className="text-lg font-bold">{profile.charger_level}</p><p className="text-[10px] text-muted-foreground">شحن</p></div>
+        <div className="bg-card/70 rounded-2xl p-3 border border-border/30">
+          <p className="text-[12px] font-bold mb-1.5">📈 المستويات</p>
+          <div className="grid grid-cols-3 gap-1.5 text-center">
+            {[
+              { v: profile.sender_level, l: "إرسال" },
+              { v: profile.received_level, l: "استلام" },
+              { v: profile.charger_level, l: "شحن" },
+            ].map((s, i) => (
+              <div key={i} className="bg-background/50 rounded-lg p-2">
+                <p className="text-sm font-bold">{s.v}</p>
+                <p className="text-[9px] text-muted-foreground">{s.l}</p>
+              </div>
+            ))}
           </div>
         </div>
 
         {/* Info */}
-        <div className="bg-card rounded-2xl p-4 space-y-2 text-sm">
+        <div className="bg-card/70 rounded-2xl p-3 space-y-1.5 text-[11px] border border-border/30">
           <div className="flex justify-between"><span>{profile.vip}</span><span className="text-muted-foreground">⭐ VIP</span></div>
           <div className="flex justify-between"><span>#{profile.agency_id}</span><span className="text-muted-foreground">👨‍👩‍👦 الوكالة</span></div>
-          <div className="flex justify-between"><span>{profile.created_at}</span><span className="text-muted-foreground">📅 تاريخ التسجيل</span></div>
+          <div className="flex justify-between"><span>{profile.created_at}</span><span className="text-muted-foreground">📅 التسجيل</span></div>
         </div>
 
-        <button onClick={handleLogout} className="w-full h-12 rounded-xl bg-destructive/10 text-destructive font-medium flex items-center justify-center gap-2 active:scale-[0.97] mt-4">
-          <LogOut className="w-4 h-4" /> تسجيل خروج
+        <button onClick={handleLogout} className="w-full h-9 rounded-xl bg-destructive/10 text-destructive text-[12px] font-medium flex items-center justify-center gap-1.5 active:scale-[0.96] mt-2">
+          <LogOut className="w-3.5 h-3.5" /> تسجيل خروج
         </button>
       </div>
     </div>
