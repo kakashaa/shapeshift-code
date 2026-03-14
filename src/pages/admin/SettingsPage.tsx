@@ -168,6 +168,31 @@ export default function SettingsPage() {
               enabled={demoNotif}
               onToggle={handleDemoNotif}
             />
+            {/* Push Notifications */}
+            <div className="px-4 py-3 flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3 flex-1 min-w-0">
+                <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                  <Send className="w-4 h-4 text-primary" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-[13px] font-semibold">إشعارات Push</p>
+                  <p className="text-[10px] text-muted-foreground leading-relaxed">
+                    {pushEnabled ? "مفعّلة — ستصلك إشعارات حتى لو التطبيق مغلق" : "تفعيل الإشعارات الفورية على جهازك"}
+                  </p>
+                </div>
+              </div>
+              <Switch checked={pushEnabled} onCheckedChange={handlePushToggle} disabled={pushLoading} />
+            </div>
+            {pushEnabled && (
+              <div className="px-4 pb-3">
+                <button
+                  onClick={handleTestPush}
+                  className="w-full h-9 rounded-xl bg-primary/10 text-primary text-[11px] font-semibold active:scale-95 transition-all"
+                >
+                  🔔 إرسال إشعار تجريبي
+                </button>
+              </div>
+            )}
           </div>
         </motion.div>
 
