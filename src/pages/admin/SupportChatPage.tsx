@@ -108,7 +108,7 @@ export default function SupportChatPage() {
 
     // Also update the ticket's admin_username
     await supabase
-      .from("support_tickets")
+      .from("support_tickets" as any)
       .update({ admin_username: name || "أدمن", updated_at: new Date().toISOString() })
       .eq("id", ticketId);
 
