@@ -53,9 +53,10 @@ function extractArray(data: any): any[] {
 }
 
 async function request<T>(action: string, params: Record<string, any> = {}, method: "GET" | "POST" = "GET"): Promise<T> {
-  // In demo mode, throw to trigger catch blocks with mock data
+  // In demo mode: POST actions return success, GET actions throw to trigger mock data in catch blocks
   if (isDemoMode()) {
-    await new Promise(r => setTimeout(r, 300 + Math.random() * 400)); // simulate latency
+    await new Promise(r => setTimeout(r, 200 + Math.random() * 300));
+    if (method === "POST") return { success: true, message: "تم (وضع تجريبي)" } as T;
     throw new Error("DEMO_MODE");
   }
 
