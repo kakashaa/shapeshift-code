@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { BottomNav } from "@/components/BottomNav";
 import { UserBottomNav } from "@/components/UserBottomNav";
+import { AnimatedRoutes } from "@/components/AnimatedRoutes";
 
 // Pages
 import LoginPage from "@/pages/LoginPage";
