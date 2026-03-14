@@ -97,7 +97,6 @@ export default function AdminChatPage() {
 
           {groupedMessages.map((msg, i) => {
             const mine = isMe(msg.admin_name);
-            const colorClass = getAvatarColor(msg.admin_name);
 
             return (
               <motion.div
@@ -105,14 +104,12 @@ export default function AdminChatPage() {
                 initial={{ opacity: 0, y: 6 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.15, delay: i * 0.02 }}
-                className={`flex items-end gap-1.5 ${mine ? "justify-start" : "justify-start"} ${msg.isLast ? "mb-2" : "mb-0.5"}`}
+                className={`flex items-end gap-1.5 ${msg.isLast ? "mb-2" : "mb-0.5"}`}
               >
                 {/* Avatar - only on last message of group */}
                 <div className="w-7 shrink-0">
                   {msg.isLast ? (
-                    <div className={`w-7 h-7 rounded-full bg-gradient-to-br ${colorClass} flex items-center justify-center`}>
-                      <span className="text-[10px] font-bold text-white">{msg.admin_name.charAt(0)}</span>
-                    </div>
+                    <UserAvatar name={msg.admin_name} size="xs" />
                   ) : null}
                 </div>
 
