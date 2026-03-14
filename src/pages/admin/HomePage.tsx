@@ -18,6 +18,10 @@ export default function HomePage() {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const { name } = useAuth();
+  const {
+    notifications, unreadCount, markAsRead, markAllAsRead, clearAll,
+    permissionGranted, enableBrowserNotifications,
+  } = useNotifications();
 
   useEffect(() => { loadData(); }, []);
 
