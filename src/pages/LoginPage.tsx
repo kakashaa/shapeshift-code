@@ -3,6 +3,7 @@ import { Shield, User, Play } from "lucide-react";
 import { motion } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import { setDemoMode } from "@/lib/api";
+import logo from "@/assets/logo.png";
 
 export default function LoginPage() {
   const navigate = useNavigate();
