@@ -5,7 +5,8 @@
 @tailwind utilities;
 
 @layer base {
-  :root {
+  :root,
+  .dark {
     --background: 220 16% 4%;
     --foreground: 210 20% 94%;
 
@@ -55,6 +56,55 @@
     --sidebar-border: 220 10% 14%;
     --sidebar-ring: 200 95% 48%;
   }
+
+  .light {
+    --background: 210 20% 98%;
+    --foreground: 220 16% 10%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 220 16% 10%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 16% 10%;
+
+    --primary: 200 95% 42%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 210 16% 93%;
+    --secondary-foreground: 220 14% 30%;
+
+    --muted: 210 14% 95%;
+    --muted-foreground: 215 12% 45%;
+
+    --accent: 200 80% 38%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 68% 52%;
+    --destructive-foreground: 0 0% 100%;
+
+    --success: 160 72% 36%;
+    --success-foreground: 0 0% 100%;
+
+    --warning: 42 88% 48%;
+    --warning-foreground: 0 0% 0%;
+
+    --border: 214 16% 88%;
+    --input: 214 16% 88%;
+    --ring: 200 95% 42%;
+
+    --gradient-primary: linear-gradient(135deg, hsl(200, 95%, 42%), hsl(220, 85%, 48%));
+    --gradient-button: linear-gradient(135deg, hsl(200, 95%, 38%), hsl(215, 80%, 44%));
+    --gradient-glow: radial-gradient(600px circle at var(--mouse-x, 50%) var(--mouse-y, 50%), hsl(200 95% 42% / 0.06), transparent 40%);
+
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 220 16% 10%;
+    --sidebar-primary: 200 95% 42%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 210 16% 93%;
+    --sidebar-accent-foreground: 220 16% 10%;
+    --sidebar-border: 214 16% 88%;
+    --sidebar-ring: 200 95% 42%;
+  }
 }
 
 @layer base {
@@ -103,6 +153,9 @@
     @apply bg-card/80 backdrop-blur-xl border border-border/40 rounded-2xl;
     box-shadow: 0 0 0 1px hsl(200 95% 48% / 0.03), 0 2px 12px -2px hsl(220 16% 4% / 0.5);
   }
+  .light .glass-card {
+    box-shadow: 0 0 0 1px hsl(200 95% 42% / 0.06), 0 2px 12px -2px hsl(220 16% 80% / 0.3);
+  }
 
   .glass-card-hover {
     @apply glass-card transition-all duration-200;
@@ -129,6 +182,11 @@
     background: radial-gradient(ellipse at top right, hsl(200 95% 48% / 0.06), transparent 70%);
     pointer-events: none;
   }
+}
+
+/* Light mode scrollbar */
+.light ::-webkit-scrollbar-thumb {
+  background: hsl(214, 16%, 78%);
 }
 
 /* Skeleton shimmer */
