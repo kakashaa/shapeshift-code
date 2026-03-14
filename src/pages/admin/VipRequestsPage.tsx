@@ -47,7 +47,7 @@ export default function VipRequestsPage() {
       console.error("Error loading VIP requests:", error);
       toast({ title: "خطأ في تحميل الطلبات", variant: "destructive" });
     }
-    setRequests(data || []);
+    setRequests((data as any) || []);
     setLoading(false);
   };
 

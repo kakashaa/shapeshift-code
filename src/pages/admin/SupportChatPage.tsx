@@ -121,7 +121,7 @@ export default function SupportChatPage() {
     if (!ticketId) return;
 
     const { error } = await supabase
-      .from("support_tickets")
+      .from("support_tickets" as any)
       .update({ status: "closed", updated_at: new Date().toISOString() })
       .eq("id", ticketId);
 
