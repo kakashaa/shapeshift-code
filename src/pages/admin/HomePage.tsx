@@ -91,15 +91,23 @@ export default function HomePage() {
       <div className="pb-24">
         {/* Header */}
         <div className="px-4 pt-5 pb-4 flex items-center justify-between">
-          <NotificationCenter
-            notifications={notifications}
-            unreadCount={unreadCount}
-            onMarkAsRead={markAsRead}
-            onMarkAllAsRead={markAllAsRead}
-            onClear={clearAll}
-            permissionGranted={permissionGranted}
-            onEnableBrowser={enableBrowserNotifications}
-          />
+          <div className="flex items-center gap-2">
+            <NotificationCenter
+              notifications={notifications}
+              unreadCount={unreadCount}
+              onMarkAsRead={markAsRead}
+              onMarkAllAsRead={markAllAsRead}
+              onClear={clearAll}
+              permissionGranted={permissionGranted}
+              onEnableBrowser={enableBrowserNotifications}
+            />
+            <button
+              onClick={toggleTheme}
+              className="w-9 h-9 rounded-xl bg-secondary flex items-center justify-center active:scale-90 transition-transform"
+            >
+              {theme === "dark" ? <Sun className="w-4 h-4 text-warning" /> : <Moon className="w-4 h-4 text-primary" />}
+            </button>
+          </div>
           <div className="flex items-center gap-3">
             <div className="text-left">
               <p className="text-[10px] text-muted-foreground leading-none font-medium">مرحباً بك</p>
