@@ -17,10 +17,7 @@ export default function UserLoginPage() {
   const { login } = useAuth();
 
   const sendOtp = async () => {
-    if (!uuid) {
-      toast({ title: "أدخل رقم الآيدي", variant: "destructive" });
-      return;
-    }
+    if (!uuid) { toast({ title: "أدخل رقم الآيدي", variant: "destructive" }); return; }
     setLoading(true);
     try {
       await api.userLoginRequest(uuid);
@@ -28,35 +25,23 @@ export default function UserLoginPage() {
       setStep(2);
       setCountdown(60);
       const interval = setInterval(() => {
-        setCountdown(c => {
-          if (c <= 1) { clearInterval(interval); return 0; }
-          return c - 1;
-        });
+        setCountdown(c => { if (c <= 1) { clearInterval(interval); return 0; } return c - 1; });
       }, 1000);
-    } catch (e: any) {
-      toast({ title: "خطأ", description: e.message, variant: "destructive" });
-    } finally {
-      setLoading(false);
-    }
+    } catch (e: any) { toast({ title: "خطأ", description: e.message, variant: "destructive" }); }
+    finally { setLoading(false); }
   };
 
   const verifyOtp = async () => {
     const otp = code.join("");
-    if (otp.length < 6) {
-      toast({ title: "أدخل الرمز كاملاً", variant: "destructive" });
-      return;
-    }
+    if (otp.length < 6) { toast({ title: "أدخل الرمز كاملاً", variant: "destructive" }); return; }
     setLoading(true);
     try {
       const res = await api.userLoginVerify(uuid, otp);
       login(res.token, res.type, res.name, { uuid: res.uuid, avatar: res.avatar });
       toast({ title: "مرحباً " + res.name });
       navigate("/user");
-    } catch (e: any) {
-      toast({ title: "خطأ", description: e.message, variant: "destructive" });
-    } finally {
-      setLoading(false);
-    }
+    } catch (e: any) { toast({ title: "خطأ", description: e.message, variant: "destructive" }); }
+    finally { setLoading(false); }
   };
 
   const handleCodeChange = (index: number, value: string) => {
@@ -64,100 +49,78 @@ export default function UserLoginPage() {
     const newCode = [...code];
     newCode[index] = value.slice(-1);
     setCode(newCode);
-    if (value && index < 5) {
-      const prev = document.getElementById(`otp-${index + 1}`);
-      prev?.focus();
-    }
+    if (value && index < 5) document.getElementById(`otp-${index + 1}`)?.focus();
   };
 
   const handleCodeKeyDown = (index: number, e: React.KeyboardEvent) => {
-    if (e.key === "Backspace" && !code[index] && index > 0) {
-      const prev = document.getElementById(`otp-${index - 1}`);
-      prev?.focus();
-    }
+    if (e.key === "Backspace" && !code[index] && index > 0) document.getElementById(`otp-${index - 1}`)?.focus();
   };
 
   return (
     <div className="min-h-screen bg-background">
       <PageHeader title="دخول مستخدم" showBack />
-      <div className="p-6 max-w-sm mx-auto pt-8">
+      <div className="p-6 max-w-sm mx-auto pt-10">
         <AnimatePresence mode="wait">
           {step === 1 ? (
-            <motion.div key="step1" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} className="space-y-6">
-              <div className="text-center mb-8">
-                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-accent mx-auto flex items-center justify-center mb-3">
+            <motion.div key="step1" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} className="space-y-8">
+              <div className="text-center">
+                <div className="w-16 h-16 rounded-2xl mx-auto flex items-center justify-center mb-4 glow-border"
+                  style={{ background: "var(--gradient-primary)" }}>
                   <Fingerprint className="w-7 h-7 text-primary-foreground" />
                 </div>
-                <h2 className="text-xl font-bold">تسجيل دخول المستخدم</h2>
-                <p className="text-sm text-muted-foreground mt-1">أدخل معرف المستخدم (UUID) الخاص بك</p>
+                <h2 className="text-lg font-bold">تسجيل دخول المستخدم</h2>
+                <p className="text-xs text-muted-foreground mt-1">أدخل معرف المستخدم (UUID) الخاص بك</p>
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium">معرف المستخدم (UUID)</label>
+                <label className="text-xs font-medium text-muted-foreground">معرف المستخدم (UUID)</label>
                 <input
-                  type="text"
-                  value={uuid}
-                  onChange={e => setUuid(e.target.value)}
+                  type="text" value={uuid} onChange={e => setUuid(e.target.value)}
                   placeholder="أدخل رقم الآيدي"
-                  className="w-full h-12 rounded-xl bg-secondary border-0 px-4 text-base text-center placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                  className="w-full h-12 rounded-xl bg-secondary/80 border border-border/50 px-4 text-sm text-center placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary/40 transition-all"
                   dir="ltr"
                 />
               </div>
 
-              <button
-                onClick={sendOtp}
-                disabled={loading}
-                className="w-full h-14 rounded-2xl font-bold text-lg text-primary-foreground active:scale-[0.97] transition-transform disabled:opacity-50"
-                style={{ background: "var(--gradient-button)" }}
-              >
+              <motion.button whileTap={{ scale: 0.97 }} onClick={sendOtp} disabled={loading}
+                className="w-full h-[52px] rounded-2xl font-semibold text-sm text-primary-foreground transition-all disabled:opacity-50 glow-border"
+                style={{ background: "var(--gradient-button)" }}>
                 {loading ? "جاري الإرسال..." : "إرسال رمز التحقق"}
-              </button>
+              </motion.button>
 
-              <div className="bg-secondary/50 rounded-xl p-3 text-center">
-                <p className="text-xs text-muted-foreground">سيتم إرسال رمز تحقق كرسالة خاصة داخل التطبيق</p>
+              <div className="glass-card p-3 text-center">
+                <p className="text-[11px] text-muted-foreground">سيتم إرسال رمز تحقق كرسالة خاصة داخل التطبيق</p>
               </div>
             </motion.div>
           ) : (
-            <motion.div key="step2" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} className="space-y-6">
-              <div className="text-center mb-8">
-                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-accent mx-auto flex items-center justify-center mb-3">
+            <motion.div key="step2" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} className="space-y-8">
+              <div className="text-center">
+                <div className="w-16 h-16 rounded-2xl mx-auto flex items-center justify-center mb-4 glow-border"
+                  style={{ background: "var(--gradient-primary)" }}>
                   <ShieldCheck className="w-7 h-7 text-primary-foreground" />
                 </div>
-                <h2 className="text-xl font-bold">رمز التحقق</h2>
-                <p className="text-sm text-muted-foreground mt-1">أدخل الرمز المرسل لحسابك داخل التطبيق</p>
+                <h2 className="text-lg font-bold">رمز التحقق</h2>
+                <p className="text-xs text-muted-foreground mt-1">أدخل الرمز المرسل لحسابك داخل التطبيق</p>
               </div>
 
-              <div className="flex gap-2 justify-center" dir="ltr">
+              <div className="flex gap-2.5 justify-center" dir="ltr">
                 {code.map((digit, i) => (
-                  <input
-                    key={i}
-                    id={`otp-${i}`}
-                    type="text"
-                    inputMode="numeric"
-                    maxLength={1}
-                    value={digit}
-                    onChange={e => handleCodeChange(i, e.target.value)}
-                    onKeyDown={e => handleCodeKeyDown(i, e)}
-                    className="w-12 h-14 rounded-xl bg-secondary text-center text-xl font-bold focus:outline-none focus:ring-2 focus:ring-primary"
+                  <input key={i} id={`otp-${i}`} type="text" inputMode="numeric" maxLength={1}
+                    value={digit} onChange={e => handleCodeChange(i, e.target.value)} onKeyDown={e => handleCodeKeyDown(i, e)}
+                    className="w-11 h-13 rounded-xl bg-secondary/80 border border-border/50 text-center text-lg font-bold focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary/40 transition-all"
                   />
                 ))}
               </div>
 
-              <button
-                onClick={verifyOtp}
-                disabled={loading}
-                className="w-full h-14 rounded-2xl font-bold text-lg text-primary-foreground active:scale-[0.97] transition-transform disabled:opacity-50"
-                style={{ background: "var(--gradient-button)" }}
-              >
+              <motion.button whileTap={{ scale: 0.97 }} onClick={verifyOtp} disabled={loading}
+                className="w-full h-[52px] rounded-2xl font-semibold text-sm text-primary-foreground transition-all disabled:opacity-50 glow-border"
+                style={{ background: "var(--gradient-button)" }}>
                 {loading ? "جاري التحقق..." : "تأكيد الدخول"}
-              </button>
+              </motion.button>
 
               <div className="text-center">
-                <button
-                  onClick={sendOtp}
-                  disabled={countdown > 0 || loading}
-                  className="text-sm text-primary disabled:text-muted-foreground"
-                >
+                <button onClick={sendOtp} disabled={countdown > 0 || loading}
+                  className="text-xs text-primary disabled:text-muted-foreground transition-colors">
                   {countdown > 0 ? `إعادة الإرسال (${countdown}ث)` : "إعادة إرسال الرمز"}
                 </button>
               </div>

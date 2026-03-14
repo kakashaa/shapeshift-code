@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback, ReactNode } from "react";
-import { motion, useAnimation } from "framer-motion";
+import { motion } from "framer-motion";
 import { Loader2 } from "lucide-react";
 
 interface PullToRefreshProps {
@@ -13,7 +13,6 @@ export function PullToRefresh({ onRefresh, children }: PullToRefreshProps) {
   const [pullDistance, setPullDistance] = useState(0);
   const startY = useRef(0);
   const containerRef = useRef<HTMLDivElement>(null);
-  const controls = useAnimation();
   const threshold = 70;
 
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
@@ -27,9 +26,7 @@ export function PullToRefresh({ onRefresh, children }: PullToRefreshProps) {
   const handleTouchMove = useCallback((e: React.TouchEvent) => {
     if (!pulling || refreshing) return;
     const diff = e.touches[0].clientY - startY.current;
-    if (diff > 0) {
-      setPullDistance(Math.min(diff * 0.45, 120));
-    }
+    if (diff > 0) setPullDistance(Math.min(diff * 0.4, 100));
   }, [pulling, refreshing]);
 
   const handleTouchEnd = useCallback(async () => {
@@ -37,7 +34,7 @@ export function PullToRefresh({ onRefresh, children }: PullToRefreshProps) {
     setPulling(false);
     if (pullDistance >= threshold && !refreshing) {
       setRefreshing(true);
-      setPullDistance(45);
+      setPullDistance(40);
       try { await onRefresh(); } catch {}
       setRefreshing(false);
     }
@@ -62,13 +59,8 @@ export function PullToRefresh({ onRefresh, children }: PullToRefreshProps) {
         {refreshing ? (
           <Loader2 className="w-5 h-5 text-primary animate-spin" />
         ) : (
-          <motion.div
-            style={{ opacity: progress, rotate: progress * 180 }}
-            className="text-primary"
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M12 5v14M5 12l7-7 7 7" />
-            </svg>
+          <motion.div style={{ opacity: progress, scale: 0.6 + progress * 0.4 }} className="text-primary">
+            <Loader2 className="w-5 h-5" style={{ transform: `rotate(${progress * 360}deg)` }} />
           </motion.div>
         )}
       </motion.div>
