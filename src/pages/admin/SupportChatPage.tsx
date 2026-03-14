@@ -82,7 +82,7 @@ export default function SupportChatPage() {
       .eq("ticket_id", ticketId)
       .order("created_at", { ascending: true });
 
-    setMessages(msgData || []);
+    setMessages((msgData as any) || []);
     setLoading(false);
   };
 
