@@ -33,6 +33,7 @@ import ActivityLogPage from "@/pages/admin/ActivityLogPage";
 import IdChangePage from "@/pages/admin/IdChangePage";
 import RegistrationsPage from "@/pages/admin/RegistrationsPage";
 import SettingsPage from "@/pages/admin/SettingsPage";
+import AnalyticsPage from "@/pages/admin/AnalyticsPage";
 import UserDashboard from "@/pages/user/UserDashboard";
 import UserChargesPage from "@/pages/user/UserChargesPage";
 import UserSalaryPage from "@/pages/user/UserSalaryPage";
@@ -107,6 +108,7 @@ function AppRoutes() {
       <Route path="/more/id-change" element={<ProtectedRoute allowedType="admin"><AnimatedPage><IdChangePage /></AnimatedPage></ProtectedRoute>} />
       <Route path="/more/registrations" element={<ProtectedRoute allowedType="admin"><AnimatedPage><RegistrationsPage /></AnimatedPage></ProtectedRoute>} />
       <Route path="/more/settings" element={<ProtectedRoute allowedType="admin"><AnimatedPage><SettingsPage /></AnimatedPage></ProtectedRoute>} />
+      <Route path="/more/analytics" element={<ProtectedRoute allowedType="admin"><AnimatedPage><AnalyticsPage /></AnimatedPage></ProtectedRoute>} />
 
       {/* User routes */}
       <Route element={<ProtectedRoute allowedType="user"><UserLayout /></ProtectedRoute>}>

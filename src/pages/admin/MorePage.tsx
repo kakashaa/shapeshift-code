@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Bell, Search, MessageSquare, AlertTriangle, Star, ShoppingBag, User, ArrowRightLeft, UserPlus, ClipboardList, Settings, LogOut, ChevronLeft, Sun, Moon } from "lucide-react";
+import { Bell, Search, MessageSquare, AlertTriangle, Star, ShoppingBag, User, ArrowRightLeft, UserPlus, ClipboardList, Settings, LogOut, ChevronLeft, Sun, Moon, BarChart2 } from "lucide-react";
 import { motion } from "framer-motion";
 import { api } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
@@ -28,6 +28,7 @@ export default function MorePage() {
     { icon: UserPlus, label: "تسجيلات جديدة", path: "/more/registrations", badge: 0 },
     { icon: ClipboardList, label: "سجل الإجراءات", path: "/more/activity-log", badge: 0 },
     { icon: Settings, label: "الإعدادات", path: "/more/settings", badge: 0 },
+    { icon: BarChart2, label: "الإحصائيات", path: "/more/analytics", badge: 0 },
   ];
 
   const handleLogout = () => {
