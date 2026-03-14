@@ -51,7 +51,7 @@ export default function ReportsPage() {
 
   const handleVerify = async (id: string) => {
     const { error } = await supabase
-      .from("ban_reports")
+      .from("ban_reports" as any)
       .update({ is_verified: true })
       .eq("id", id);
 
