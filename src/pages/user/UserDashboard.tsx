@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { LogOut } from "lucide-react";
 import { motion } from "framer-motion";
@@ -6,6 +6,7 @@ import { api } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
 import { CardSkeleton } from "@/components/LoadingSkeleton";
 import { UserAvatar } from "@/components/UserAvatar";
+import { PullToRefresh } from "@/components/PullToRefresh";
 
 export default function UserDashboard() {
   const [profile, setProfile] = useState<any>(null);
@@ -28,10 +29,16 @@ export default function UserDashboard() {
 
   const handleLogout = () => { logout(); navigate("/login"); };
 
+  const handleRefresh = useCallback(async () => {
+    const data = await api.userProfile().catch(() => profile);
+    setProfile(data);
+  }, [profile]);
+
   if (loading) return <div className="pb-20"><CardSkeleton count={5} /></div>;
   if (!profile) return null;
 
   return (
+    <PullToRefresh onRefresh={handleRefresh}>
     <div className="pb-20">
       {/* Profile header */}
       <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="text-center pt-6 pb-3 px-4">
@@ -108,5 +115,6 @@ export default function UserDashboard() {
         </button>
       </div>
     </div>
+    </PullToRefresh>
   );
 }
