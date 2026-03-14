@@ -75,7 +75,7 @@ export default function StoreRequestsPage() {
       // Frame claims
       if (filter === "all" || filter === "frame") {
         const { data } = await supabase
-          .from("frame_claims")
+          .from("frame_claims" as any)
           .select("*, frames(title, file_url)")
           .order("created_at", { ascending: false });
         if (data) {
