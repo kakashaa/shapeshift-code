@@ -39,7 +39,7 @@ export default function VipRequestsPage() {
   const loadRequests = async () => {
     setLoading(true);
     const { data, error } = await supabase
-      .from("vip_requests")
+      .from("vip_requests" as any)
       .select("*")
       .order("created_at", { ascending: false });
 
@@ -47,7 +47,7 @@ export default function VipRequestsPage() {
       console.error("Error loading VIP requests:", error);
       toast({ title: "خطأ في تحميل الطلبات", variant: "destructive" });
     }
-    setRequests(data || []);
+    setRequests((data as any) || []);
     setLoading(false);
   };
 

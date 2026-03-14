@@ -33,7 +33,7 @@ export default function ReportsPage() {
   const loadReports = async () => {
     setLoading(true);
     let query = supabase
-      .from("ban_reports")
+      .from("ban_reports" as any)
       .select("*")
       .order("created_at", { ascending: false });
 
@@ -45,13 +45,13 @@ export default function ReportsPage() {
       console.error("Error loading reports:", error);
       toast({ title: "خطأ في تحميل البلاغات", variant: "destructive" });
     }
-    setReports(data || []);
+    setReports((data as any) || []);
     setLoading(false);
   };
 
   const handleVerify = async (id: string) => {
     const { error } = await supabase
-      .from("ban_reports")
+      .from("ban_reports" as any)
       .update({ is_verified: true })
       .eq("id", id);
 
@@ -67,7 +67,7 @@ export default function ReportsPage() {
     const note = prompt("أضف ملاحظة:");
     if (!note) return;
     const { error } = await supabase
-      .from("ban_reports")
+      .from("ban_reports" as any)
       .update({ admin_notes: note })
       .eq("id", id);
 

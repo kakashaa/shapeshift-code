@@ -26,7 +26,7 @@ export default function IdChangePage() {
   const loadRequests = async () => {
     setLoading(true);
     const { data, error } = await supabase
-      .from("id_changes")
+      .from("id_changes" as any)
       .select("*")
       .order("created_at", { ascending: false });
 
@@ -34,7 +34,7 @@ export default function IdChangePage() {
       console.error("Error loading ID changes:", error);
       toast({ title: "خطأ في تحميل الطلبات", variant: "destructive" });
     }
-    setRequests(data || []);
+    setRequests((data as any) || []);
     setLoading(false);
   };
 

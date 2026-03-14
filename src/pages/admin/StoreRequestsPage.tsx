@@ -54,11 +54,11 @@ export default function StoreRequestsPage() {
       // Animated photo requests
       if (filter === "all" || filter === "animated_photo") {
         const { data } = await supabase
-          .from("animated_photo_requests")
+          .from("animated_photo_requests" as any)
           .select("*")
           .order("created_at", { ascending: false });
         if (data) {
-          allRequests.push(...data.map(r => ({
+          allRequests.push(...(data as any[]).map((r: any) => ({
             id: r.id,
             type: "animated_photo" as const,
             user_name: r.user_name,
@@ -75,11 +75,11 @@ export default function StoreRequestsPage() {
       // Frame claims
       if (filter === "all" || filter === "frame") {
         const { data } = await supabase
-          .from("frame_claims")
+          .from("frame_claims" as any)
           .select("*, frames(title, file_url)")
           .order("created_at", { ascending: false });
         if (data) {
-          allRequests.push(...data.map(r => ({
+          allRequests.push(...(data as any[]).map((r: any) => ({
             id: r.id,
             type: "frame" as const,
             user_name: r.user_uuid,
@@ -95,11 +95,11 @@ export default function StoreRequestsPage() {
       // Entry gift claims
       if (filter === "all" || filter === "entry_gift") {
         const { data } = await supabase
-          .from("entry_gift_claims")
+          .from("entry_gift_claims" as any)
           .select("*, entry_gifts(title, video_url)")
           .order("created_at", { ascending: false });
         if (data) {
-          allRequests.push(...data.map(r => ({
+          allRequests.push(...(data as any[]).map((r: any) => ({
             id: r.id,
             type: "entry_gift" as const,
             user_name: r.user_uuid,
@@ -114,12 +114,12 @@ export default function StoreRequestsPage() {
       // Custom gifts
       if (filter === "all" || filter === "custom_gift") {
         const { data } = await supabase
-          .from("custom_gifts")
+          .from("custom_gifts" as any)
           .select("*")
           .eq("is_deleted", false)
           .order("created_at", { ascending: false });
         if (data) {
-          allRequests.push(...data.map(r => ({
+          allRequests.push(...(data as any[]).map((r: any) => ({
             id: r.id,
             type: "custom_gift" as const,
             user_name: r.user_name,
@@ -136,11 +136,11 @@ export default function StoreRequestsPage() {
       // Hair selections
       if (filter === "all" || filter === "hair") {
         const { data } = await supabase
-          .from("hair_selections")
+          .from("hair_selections" as any)
           .select("*, hairs(title, file_url)")
           .order("created_at", { ascending: false });
         if (data) {
-          allRequests.push(...data.map(r => ({
+          allRequests.push(...(data as any[]).map((r: any) => ({
             id: r.id,
             type: "hair" as const,
             user_name: r.user_uuid,
@@ -173,7 +173,7 @@ export default function StoreRequestsPage() {
     else return; // frame/entry claims don't have approve flow
 
     const { error } = await supabase
-      .from(table)
+      .from(table as any)
       .update({ status: "approved" })
       .eq("id", req.id);
 
@@ -195,7 +195,7 @@ export default function StoreRequestsPage() {
     const note = prompt("سبب الرفض (اختياري):");
 
     const { error } = await supabase
-      .from(table)
+      .from(table as any)
       .update({ status: "rejected", admin_note: note || null })
       .eq("id", req.id);
 

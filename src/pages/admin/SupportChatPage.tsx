@@ -68,21 +68,21 @@ export default function SupportChatPage() {
 
     // Load ticket info
     const { data: ticketData } = await supabase
-      .from("support_tickets")
+      .from("support_tickets" as any)
       .select("id, user_name, user_uuid, subject, status")
       .eq("id", ticketId)
       .single();
 
-    if (ticketData) setTicket(ticketData);
+    if (ticketData) setTicket(ticketData as any);
 
     // Load messages
     const { data: msgData } = await supabase
-      .from("ticket_messages")
+      .from("ticket_messages" as any)
       .select("*")
       .eq("ticket_id", ticketId)
       .order("created_at", { ascending: true });
 
-    setMessages(msgData || []);
+    setMessages((msgData as any) || []);
     setLoading(false);
   };
 
@@ -93,7 +93,7 @@ export default function SupportChatPage() {
     setInput("");
 
     const { error } = await supabase
-      .from("ticket_messages")
+      .from("ticket_messages" as any)
       .insert({
         ticket_id: ticketId,
         message: msg,
@@ -108,7 +108,7 @@ export default function SupportChatPage() {
 
     // Also update the ticket's admin_username
     await supabase
-      .from("support_tickets")
+      .from("support_tickets" as any)
       .update({ admin_username: name || "أدمن", updated_at: new Date().toISOString() })
       .eq("id", ticketId);
 
@@ -121,7 +121,7 @@ export default function SupportChatPage() {
     if (!ticketId) return;
 
     const { error } = await supabase
-      .from("support_tickets")
+      .from("support_tickets" as any)
       .update({ status: "closed", updated_at: new Date().toISOString() })
       .eq("id", ticketId);
 
