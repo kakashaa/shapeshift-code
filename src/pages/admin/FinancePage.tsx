@@ -105,7 +105,16 @@ export default function FinancePage() {
   return (
     <PullToRefresh onRefresh={handleRefresh}>
       <div className="pb-20">
-        <PageHeader title="المالية" />
+        <PageHeader title="المالية" actions={
+          <div className="flex gap-1.5">
+            <button onClick={() => handleExport("csv")} className="w-8 h-8 rounded-xl bg-secondary/80 flex items-center justify-center active:scale-90 transition-all hover:bg-secondary" title="CSV">
+              <Download className="w-3.5 h-3.5 text-muted-foreground" />
+            </button>
+            <button onClick={() => handleExport("pdf")} className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center active:scale-90 transition-all hover:bg-primary/20" title="PDF">
+              <Download className="w-3.5 h-3.5 text-primary" />
+            </button>
+          </div>
+        } />
 
         {/* Tabs */}
         <div className="flex gap-2 px-4 py-3">
