@@ -94,7 +94,7 @@ export function NotificationCenter({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -10, scale: 0.95 }}
             transition={{ duration: 0.2 }}
-            className="absolute top-12 left-0 right-auto w-[340px] max-h-[70vh] rounded-2xl border border-border/50 bg-card shadow-2xl overflow-hidden z-50"
+            className="fixed top-14 left-4 right-4 sm:absolute sm:top-12 sm:left-auto sm:right-0 sm:w-[340px] max-h-[70vh] rounded-2xl border border-border/50 bg-card shadow-2xl overflow-hidden z-50"
             style={{ direction: "rtl" }}
           >
             {/* Header */}
