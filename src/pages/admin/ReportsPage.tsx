@@ -45,7 +45,7 @@ export default function ReportsPage() {
       console.error("Error loading reports:", error);
       toast({ title: "خطأ في تحميل البلاغات", variant: "destructive" });
     }
-    setReports(data || []);
+    setReports((data as any) || []);
     setLoading(false);
   };
 
