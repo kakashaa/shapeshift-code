@@ -115,5 +115,6 @@ export default function UserDashboard() {
         </button>
       </div>
     </div>
+    </PullToRefresh>
   );
 }
