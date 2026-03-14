@@ -1,11 +1,13 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { Users, DollarSign, Headphones, AlertTriangle, Bell, ChevronLeft } from "lucide-react";
+import { Users, DollarSign, Headphones, AlertTriangle, ChevronLeft } from "lucide-react";
 import { motion } from "framer-motion";
 import { api } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
 import { StatsSkeleton } from "@/components/LoadingSkeleton";
 import { PullToRefresh } from "@/components/PullToRefresh";
+import { useNotifications } from "@/hooks/useNotifications";
+import { NotificationCenter } from "@/components/NotificationCenter";
 
 interface Stats { online: number; charges_today: number; open_support: number; new_reports: number; }
 interface Activity { type: string; text: string; time: string; link: string; }
@@ -16,6 +18,10 @@ export default function HomePage() {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const { name } = useAuth();
+  const {
+    notifications, unreadCount, markAsRead, markAllAsRead, clearAll,
+    permissionGranted, enableBrowserNotifications,
+  } = useNotifications();
 
   useEffect(() => { loadData(); }, []);
 
@@ -53,13 +59,15 @@ export default function HomePage() {
       <div className="pb-20">
         {/* Header */}
         <div className="px-4 pt-4 pb-3 flex items-center justify-between">
-          <button
-            onClick={() => navigate("/more/notifications")}
-            className="w-10 h-10 rounded-xl bg-secondary/80 flex items-center justify-center relative transition-all active:scale-90"
-          >
-            <Bell className="w-[18px] h-[18px] text-muted-foreground" />
-            <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-destructive badge-pulse" />
-          </button>
+          <NotificationCenter
+            notifications={notifications}
+            unreadCount={unreadCount}
+            onMarkAsRead={markAsRead}
+            onMarkAllAsRead={markAllAsRead}
+            onClear={clearAll}
+            permissionGranted={permissionGranted}
+            onEnableBrowser={enableBrowserNotifications}
+          />
           <div className="flex items-center gap-3">
             <div className="text-left">
               <p className="text-[10px] text-muted-foreground leading-none">مرحباً بك</p>
