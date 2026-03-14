@@ -1,14 +1,24 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Send, ArrowRight, CheckCheck, Users } from "lucide-react";
-import { api } from "@/lib/api";
+import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { motion } from "framer-motion";
 import { UserAvatar } from "@/components/UserAvatar";
 
+interface ChatMessage {
+  id: string;
+  admin_name: string;
+  message: string;
+  created_at: string;
+}
+
+// We'll use the support_chat_messages table with a special chat_id for admin chat
+const ADMIN_CHAT_ID = "admin-group-chat";
+
 export default function AdminChatPage() {
   const navigate = useNavigate();
-  const [messages, setMessages] = useState<any[]>([]);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const { name } = useAuth();
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -16,45 +26,96 @@ export default function AdminChatPage() {
 
   useEffect(() => {
     loadMessages();
-    const interval = setInterval(loadMessages, 3000);
-    return () => clearInterval(interval);
+
+    // Real-time subscription
+    const channel = supabase
+      .channel("admin-chat")
+      .on("postgres_changes", {
+        event: "INSERT",
+        schema: "public",
+        table: "support_chat_messages",
+        filter: `chat_id=eq.${ADMIN_CHAT_ID}`,
+      }, (payload) => {
+        const msg = payload.new as any;
+        const newMsg: ChatMessage = {
+          id: msg.id,
+          admin_name: msg.sender_name,
+          message: msg.message,
+          created_at: msg.created_at,
+        };
+        setMessages(prev => {
+          if (prev.some(m => m.id === newMsg.id)) return prev;
+          return [...prev, newMsg];
+        });
+      })
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
   }, []);
 
-  useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages.length]);
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages.length]);
 
   const loadMessages = async () => {
-    try {
-      const data = await api.adminChat(0, 100);
-      setMessages(data);
-    } catch {
-      if (messages.length === 0) {
-        setMessages([
-          { id: 1, admin_name: "ناز", message: "يا شباب حظروا 5678 يروج لتطبيق ثاني", time: "10:25" },
-          { id: 2, admin_name: "جنجون", message: "تم الحظر ✅", time: "10:28" },
-          { id: 3, admin_name: "مارس", message: "أنا بأراجع البلاغات الجديدة", time: "10:30" },
-          { id: 4, admin_name: "ناز", message: "ممتاز، خلوا عينكم على الغرف الجديدة اليوم كثرت البلاغات", time: "10:35" },
-          { id: 5, admin_name: "جنجون", message: "إن شاء الله 👍", time: "10:36" },
-        ]);
-      }
+    const { data, error } = await supabase
+      .from("support_chat_messages")
+      .select("*")
+      .eq("chat_id", ADMIN_CHAT_ID)
+      .order("created_at", { ascending: true })
+      .limit(200);
+
+    if (data) {
+      setMessages(data.map(m => ({
+        id: m.id,
+        admin_name: m.sender_name,
+        message: m.message,
+        created_at: m.created_at,
+      })));
     }
+    if (error) console.error("Error loading admin chat:", error);
   };
 
   const handleSend = async () => {
     if (!input.trim()) return;
     const msg = input;
     setInput("");
-    const newMsg = {
-      id: Date.now(),
+
+    // Optimistic add
+    const tempId = `temp-${Date.now()}`;
+    const newMsg: ChatMessage = {
+      id: tempId,
       admin_name: name || "أدمن",
       message: msg,
-      time: new Date().toLocaleTimeString("ar", { hour: "2-digit", minute: "2-digit" }),
+      created_at: new Date().toISOString(),
     };
     setMessages(prev => [...prev, newMsg]);
-    try { await api.adminChatSend(msg); } catch {}
+
+    const { error } = await supabase
+      .from("support_chat_messages")
+      .insert({
+        chat_id: ADMIN_CHAT_ID,
+        message: msg,
+        sender_name: name || "أدمن",
+        sender_type: "admin",
+        sender_uuid: "admin",
+      });
+
+    if (error) {
+      console.error("Error sending:", error);
+      // Remove optimistic message on error
+      setMessages(prev => prev.filter(m => m.id !== tempId));
+    }
+
     inputRef.current?.focus();
   };
 
   const isMe = (adminName: string) => adminName === (name || "أدمن");
+
+  const formatTime = (dateStr: string) => {
+    const d = new Date(dateStr);
+    return d.toLocaleTimeString("ar", { hour: "2-digit", minute: "2-digit" });
+  };
 
   // Group consecutive messages from same sender
   const groupedMessages = messages.map((msg, i) => {
@@ -77,7 +138,7 @@ export default function AdminChatPage() {
         </div>
         <div className="flex-1 min-w-0">
           <h3 className="text-sm font-semibold text-foreground">شات الأدمنز</h3>
-          <p className="text-[10px] text-muted-foreground">مجموعة الإدارة</p>
+          <p className="text-[10px] text-muted-foreground">مجموعة الإدارة • مباشر</p>
         </div>
       </div>
 
@@ -88,7 +149,6 @@ export default function AdminChatPage() {
         }} />
 
         <div className="relative p-3 space-y-0.5 pb-4">
-          {/* Date separator */}
           <div className="flex justify-center my-3">
             <span className="bg-card/80 backdrop-blur-sm text-[10px] text-muted-foreground px-3 py-1 rounded-full border border-border/50">
               اليوم
@@ -103,17 +163,15 @@ export default function AdminChatPage() {
                 key={msg.id}
                 initial={{ opacity: 0, y: 6 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.15, delay: i * 0.02 }}
+                transition={{ duration: 0.15, delay: Math.min(i * 0.02, 0.5) }}
                 className={`flex items-end gap-1.5 ${msg.isLast ? "mb-2" : "mb-0.5"}`}
               >
-                {/* Avatar - only on last message of group */}
                 <div className="w-7 shrink-0">
                   {msg.isLast ? (
                     <UserAvatar name={msg.admin_name} size="xs" />
                   ) : null}
                 </div>
 
-                {/* Bubble */}
                 <div className={`relative max-w-[78%] px-3 py-2 bg-card border border-border/50 ${
                   msg.isFirst && msg.isLast
                     ? "rounded-2xl rounded-br-sm"
@@ -123,7 +181,6 @@ export default function AdminChatPage() {
                     ? "rounded-b-2xl rounded-bl-2xl rounded-tr-sm"
                     : "rounded-l-2xl rounded-r-sm"
                 }`}>
-                  {/* Sender name - only on first message */}
                   {msg.isFirst && (
                     <p className="text-[10px] font-bold mb-0.5 text-primary">
                       {msg.admin_name}
@@ -132,7 +189,7 @@ export default function AdminChatPage() {
                   )}
                   <p className="text-[13px] leading-relaxed text-foreground">{msg.message}</p>
                   <div className="flex items-center justify-end gap-1 mt-0.5">
-                    <span className="text-[10px] text-muted-foreground">{msg.time}</span>
+                    <span className="text-[10px] text-muted-foreground">{formatTime(msg.created_at)}</span>
                     {mine && <CheckCheck className="w-3 h-3 text-primary/60" />}
                   </div>
                 </div>

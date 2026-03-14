@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Bell, Search, MessageSquare, AlertTriangle, Star, ShoppingBag, User, ArrowRightLeft, UserPlus, ClipboardList, Settings, LogOut, ChevronLeft, Sun, Moon, BarChart2 } from "lucide-react";
 import { motion } from "framer-motion";
-import { api } from "@/lib/api";
+import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/contexts/ThemeContext";
 
@@ -13,8 +13,33 @@ export default function MorePage() {
   const [badges, setBadges] = useState<any>({});
 
   useEffect(() => {
-    api.badgeCounts().then(setBadges).catch(() => setBadges({ reports: 3, vip: 1, store: 5, admin_chat_unread: 2 }));
+    loadBadges();
   }, []);
+
+  const loadBadges = async () => {
+    try {
+      const [
+        { count: reportsCount },
+        { count: vipCount },
+        { count: animatedCount },
+        { count: customGiftCount },
+      ] = await Promise.all([
+        supabase.from("ban_reports").select("*", { count: "exact", head: true }).eq("is_verified", false),
+        supabase.from("vip_requests").select("*", { count: "exact", head: true }),
+        supabase.from("animated_photo_requests").select("*", { count: "exact", head: true }).eq("status", "pending"),
+        supabase.from("custom_gifts").select("*", { count: "exact", head: true }).eq("status", "pending").eq("is_deleted", false),
+      ]);
+
+      setBadges({
+        reports: reportsCount || 0,
+        vip: vipCount || 0,
+        store: (animatedCount || 0) + (customGiftCount || 0),
+        admin_chat_unread: 0,
+      });
+    } catch {
+      setBadges({ reports: 0, vip: 0, store: 0, admin_chat_unread: 0 });
+    }
+  };
 
   const items = [
     { icon: Bell, label: "إرسال إشعار", path: "/more/notifications", badge: 0 },

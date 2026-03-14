@@ -1,30 +1,47 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { api } from "@/lib/api";
+import { supabase } from "@/integrations/supabase/client";
 import { PageHeader } from "@/components/PageHeader";
 import { CardSkeleton } from "@/components/LoadingSkeleton";
 import { EmptyState } from "@/components/EmptyState";
 import { ArrowRightLeft } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 
+interface IdChange {
+  id: string;
+  user_uuid: string;
+  new_id: string;
+  level_milestone: number;
+  created_at: string;
+}
+
 export default function IdChangePage() {
-  const [requests, setRequests] = useState<any[]>([]);
+  const [requests, setRequests] = useState<IdChange[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    setLoading(true);
-    api.idChangeRequests().then(setRequests).catch(() => {
-      setRequests([
-        { request_id: 1, user_name: "محمد علي", old_uuid: "12345", new_uuid: "99999", status: "pending" },
-        { request_id: 2, user_name: "سارة أحمد", old_uuid: "67890", new_uuid: "11111", status: "pending" },
-      ]);
-    }).finally(() => setLoading(false));
+    loadRequests();
   }, []);
 
-  const handleAction = async (id: number, action: "approve" | "reject") => {
-    try { await api.idChangeAction(id, action); } catch {}
-    setRequests(prev => prev.map(r => r.request_id === id ? { ...r, status: action === "approve" ? "approved" : "rejected" } : r));
-    toast({ title: action === "approve" ? "✅ تم قبول الطلب" : "❌ تم رفض الطلب" });
+  const loadRequests = async () => {
+    setLoading(true);
+    const { data, error } = await supabase
+      .from("id_changes")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      console.error("Error loading ID changes:", error);
+      toast({ title: "خطأ في تحميل الطلبات", variant: "destructive" });
+    }
+    setRequests(data || []);
+    setLoading(false);
+  };
+
+  const formatDate = (dateStr: string) => {
+    const d = new Date(dateStr);
+    return d.toLocaleDateString("ar", { day: "numeric", month: "short" }) + " " +
+      d.toLocaleTimeString("ar", { hour: "2-digit", minute: "2-digit" });
   };
 
   return (
@@ -35,21 +52,18 @@ export default function IdChangePage() {
       ) : (
         <div className="p-4 space-y-3">
           {requests.map(r => (
-            <motion.div key={r.request_id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="bg-card rounded-2xl p-4 space-y-3">
-              <p className="font-semibold text-sm">{r.user_name}</p>
-              <div className="flex items-center justify-center gap-3 bg-secondary/50 rounded-xl p-3">
-                <span className="text-sm font-mono">{r.old_uuid}</span>
-                <ArrowRightLeft className="w-4 h-4 text-primary" />
-                <span className="text-sm font-mono text-primary">{r.new_uuid}</span>
+            <motion.div key={r.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="bg-card rounded-2xl p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] text-muted-foreground">{formatDate(r.created_at)}</span>
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-primary/10 text-primary">
+                  مستوى: {r.level_milestone}
+                </span>
               </div>
-              {r.status === "pending" ? (
-                <div className="flex gap-2">
-                  <button onClick={() => handleAction(r.request_id, "approve")} className="flex-1 h-10 rounded-xl text-sm font-medium text-primary-foreground active:scale-[0.97]" style={{ background: "var(--gradient-button)" }}>✅ قبول</button>
-                  <button onClick={() => handleAction(r.request_id, "reject")} className="flex-1 h-10 rounded-xl bg-destructive/20 text-destructive text-sm font-medium active:scale-[0.97]">❌ رفض</button>
-                </div>
-              ) : (
-                <p className="text-xs text-center text-muted-foreground">{r.status === "approved" ? "✅ تم القبول" : "❌ مرفوض"}</p>
-              )}
+              <div className="flex items-center justify-center gap-3 bg-secondary/50 rounded-xl p-3">
+                <span className="text-sm font-mono">{r.user_uuid}</span>
+                <ArrowRightLeft className="w-4 h-4 text-primary" />
+                <span className="text-sm font-mono text-primary">{r.new_id}</span>
+              </div>
             </motion.div>
           ))}
         </div>

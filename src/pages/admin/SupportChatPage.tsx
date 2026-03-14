@@ -1,69 +1,139 @@
 import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Send, ArrowRight, MoreVertical, CheckCheck, X } from "lucide-react";
-import { api } from "@/lib/api";
+import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
 import { motion, AnimatePresence } from "framer-motion";
 import { UserAvatar } from "@/components/UserAvatar";
 
+interface TicketMessage {
+  id: string;
+  message: string;
+  sender_name: string;
+  sender_type: string;
+  created_at: string;
+  attachment_url: string | null;
+}
+
+interface TicketInfo {
+  id: string;
+  user_name: string;
+  user_uuid: string;
+  subject: string;
+  status: string;
+}
+
 export default function SupportChatPage() {
   const { ticketId } = useParams();
   const navigate = useNavigate();
-  const [chat, setChat] = useState<any>(null);
-  const [message, setMessage] = useState("");
+  const [ticket, setTicket] = useState<TicketInfo | null>(null);
+  const [messages, setMessages] = useState<TicketMessage[]>([]);
+  const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
+  const [loading, setLoading] = useState(true);
   const { name } = useAuth();
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => { loadChat(); }, [ticketId]);
-  useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [chat]);
+  useEffect(() => { loadTicket(); }, [ticketId]);
+  useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages.length]);
 
-  const loadChat = async () => {
-    try {
-      const data = await api.supportChat(Number(ticketId));
-      setChat(data);
-    } catch {
-      setChat({
-        user: { name: "محمد أحمد", uuid: "12345", avatar: "" },
-        messages: [
-          { sender: "user", text: "مرحبا، عندي مشكلة بالشحن ما يشتغل", time: "10:25" },
-          { sender: "admin", admin_name: "ناز", text: "أهلاً محمد، وش المشكلة بالضبط؟", time: "10:28" },
-          { sender: "user", text: "كل ما أحاول أشحن يطلع خطأ", time: "10:30" },
-          { sender: "admin", admin_name: "ناز", text: "طيب جرب تعيد تسجيل الدخول وحاول مرة ثانية", time: "10:32" },
-          { sender: "user", text: "تمام جربت وراح الخطأ، شكراً لك 🙏", time: "10:35" },
-        ],
-      });
-    }
+  // Real-time subscription for new messages
+  useEffect(() => {
+    if (!ticketId) return;
+    const channel = supabase
+      .channel(`ticket-${ticketId}`)
+      .on("postgres_changes", {
+        event: "INSERT",
+        schema: "public",
+        table: "ticket_messages",
+        filter: `ticket_id=eq.${ticketId}`,
+      }, (payload) => {
+        const newMsg = payload.new as TicketMessage;
+        setMessages(prev => {
+          if (prev.some(m => m.id === newMsg.id)) return prev;
+          return [...prev, newMsg];
+        });
+      })
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
+  }, [ticketId]);
+
+  const loadTicket = async () => {
+    if (!ticketId) return;
+    setLoading(true);
+
+    // Load ticket info
+    const { data: ticketData } = await supabase
+      .from("support_tickets")
+      .select("id, user_name, user_uuid, subject, status")
+      .eq("id", ticketId)
+      .single();
+
+    if (ticketData) setTicket(ticketData);
+
+    // Load messages
+    const { data: msgData } = await supabase
+      .from("ticket_messages")
+      .select("*")
+      .eq("ticket_id", ticketId)
+      .order("created_at", { ascending: true });
+
+    setMessages(msgData || []);
+    setLoading(false);
   };
 
   const handleSend = async () => {
-    if (!message.trim()) return;
+    if (!input.trim() || !ticketId) return;
     setSending(true);
-    const newMsg = {
-      sender: "admin",
-      admin_name: name || "أدمن",
-      text: message,
-      time: new Date().toLocaleTimeString("ar", { hour: "2-digit", minute: "2-digit" }),
-      status: "sent"
-    };
-    try { await api.supportReply(Number(ticketId), message); } catch {}
-    setChat((prev: any) => ({ ...prev, messages: [...prev.messages, newMsg] }));
-    setMessage("");
+    const msg = input;
+    setInput("");
+
+    const { error } = await supabase
+      .from("ticket_messages")
+      .insert({
+        ticket_id: ticketId,
+        message: msg,
+        sender_name: name || "أدمن",
+        sender_type: "admin",
+      });
+
+    if (error) {
+      toast({ title: "خطأ في الإرسال", variant: "destructive" });
+      setInput(msg);
+    }
+
+    // Also update the ticket's admin_username
+    await supabase
+      .from("support_tickets")
+      .update({ admin_username: name || "أدمن", updated_at: new Date().toISOString() })
+      .eq("id", ticketId);
+
     setSending(false);
     inputRef.current?.focus();
   };
 
   const handleClose = async () => {
     setShowMenu(false);
-    try { await api.supportClose(Number(ticketId)); } catch {}
+    if (!ticketId) return;
+
+    const { error } = await supabase
+      .from("support_tickets")
+      .update({ status: "closed", updated_at: new Date().toISOString() })
+      .eq("id", ticketId);
+
+    if (error) {
+      toast({ title: "خطأ", variant: "destructive" });
+      return;
+    }
     toast({ title: "✅ تم إغلاق التذكرة" });
     navigate(-1);
   };
 
-  if (!chat) {
+  if (loading || !ticket) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="flex flex-col items-center gap-3">
@@ -74,9 +144,14 @@ export default function SupportChatPage() {
     );
   }
 
-  const groupedMessages = chat.messages.map((msg: any, i: number) => {
-    const next = chat.messages[i + 1];
-    const isLast = !next || next.sender !== msg.sender;
+  const formatTime = (dateStr: string) => {
+    const d = new Date(dateStr);
+    return d.toLocaleTimeString("ar", { hour: "2-digit", minute: "2-digit" });
+  };
+
+  const groupedMessages = messages.map((msg, i) => {
+    const next = messages[i + 1];
+    const isLast = !next || next.sender_type !== msg.sender_type;
     return { ...msg, isLast };
   });
 
@@ -87,10 +162,10 @@ export default function SupportChatPage() {
         <button onClick={() => navigate(-1)} className="p-1 -mr-1 rounded-full hover:bg-secondary transition-colors">
           <ArrowRight className="w-5 h-5 text-muted-foreground" />
         </button>
-        <UserAvatar name={chat.user.name} uuid={chat.user.uuid} src={chat.user.avatar || undefined} size="sm" online />
+        <UserAvatar name={ticket.user_name} uuid={ticket.user_uuid} size="sm" online={ticket.status === "open"} />
         <div className="flex-1 min-w-0">
-          <h3 className="text-sm font-semibold text-foreground truncate">{chat.user.name}</h3>
-          <p className="text-[10px] text-muted-foreground">تذكرة #{ticketId}</p>
+          <h3 className="text-sm font-semibold text-foreground truncate">{ticket.user_name}</h3>
+          <p className="text-[10px] text-muted-foreground truncate">{ticket.subject}</p>
         </div>
         <div className="relative">
           <button onClick={() => setShowMenu(!showMenu)} className="p-1.5 rounded-full hover:bg-secondary transition-colors">
@@ -127,11 +202,11 @@ export default function SupportChatPage() {
           <div className="flex justify-center my-3">
             <span className="bg-card/80 backdrop-blur-sm text-[10px] text-muted-foreground px-3 py-1 rounded-full border border-border/50">اليوم</span>
           </div>
-          {groupedMessages.map((msg: any, i: number) => {
-            const isAdmin = msg.sender === "admin";
+          {groupedMessages.map((msg, i) => {
+            const isAdmin = msg.sender_type === "admin";
             return (
               <motion.div
-                key={i}
+                key={msg.id}
                 initial={{ opacity: 0, y: 8, scale: 0.97 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 transition={{ duration: 0.2, delay: i * 0.03 }}
@@ -142,12 +217,17 @@ export default function SupportChatPage() {
                     ? "bg-primary text-primary-foreground rounded-t-2xl rounded-bl-sm rounded-br-2xl"
                     : "bg-card text-foreground rounded-t-2xl rounded-br-sm rounded-bl-2xl border border-border/50"
                 } ${!msg.isLast ? "mb-0.5" : "mb-1"}`}>
-                  {isAdmin && msg.admin_name && (
-                    <p className="text-[10px] font-semibold text-primary-foreground/70 mb-0.5">{msg.admin_name}</p>
+                  {isAdmin && msg.sender_name && (
+                    <p className="text-[10px] font-semibold text-primary-foreground/70 mb-0.5">{msg.sender_name}</p>
                   )}
-                  <p className="text-[13px] leading-relaxed">{msg.text}</p>
+                  <p className="text-[13px] leading-relaxed">{msg.message}</p>
+                  {msg.attachment_url && (
+                    <a href={msg.attachment_url} target="_blank" rel="noopener" className="text-[10px] underline mt-1 block">
+                      📎 مرفق
+                    </a>
+                  )}
                   <div className={`flex items-center justify-end gap-1 mt-0.5 ${isAdmin ? "text-primary-foreground/50" : "text-muted-foreground"}`}>
-                    <span className="text-[10px]">{msg.time}</span>
+                    <span className="text-[10px]">{formatTime(msg.created_at)}</span>
                     {isAdmin && <CheckCheck className="w-3 h-3" />}
                   </div>
                 </div>
@@ -164,8 +244,8 @@ export default function SupportChatPage() {
           <div className="flex-1 bg-secondary rounded-2xl flex items-end">
             <input
               ref={inputRef}
-              value={message}
-              onChange={e => setMessage(e.target.value)}
+              value={input}
+              onChange={e => setInput(e.target.value)}
               onKeyDown={e => e.key === "Enter" && !e.shiftKey && handleSend()}
               placeholder="اكتب رسالة..."
               className="flex-1 bg-transparent px-4 py-2.5 text-sm focus:outline-none min-h-[40px] placeholder:text-muted-foreground"
@@ -174,7 +254,7 @@ export default function SupportChatPage() {
           <motion.button
             whileTap={{ scale: 0.9 }}
             onClick={handleSend}
-            disabled={!message.trim() || sending}
+            disabled={!input.trim() || sending}
             className="w-10 h-10 rounded-full flex items-center justify-center shrink-0 disabled:opacity-30 transition-all"
             style={{ background: "var(--gradient-button)" }}
           >

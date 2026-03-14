@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { api } from "@/lib/api";
+import { supabase } from "@/integrations/supabase/client";
 import { PageHeader } from "@/components/PageHeader";
 import { CardSkeleton } from "@/components/LoadingSkeleton";
 import { EmptyState } from "@/components/EmptyState";
@@ -8,24 +8,52 @@ import { Star, Check, X } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { UserAvatar } from "@/components/UserAvatar";
 
+interface VipRequest {
+  id: string;
+  user_name: string;
+  user_uuid: string;
+  vip_level: number;
+  request_month: string;
+  created_at: string;
+  type_user: number | null;
+  recipient_uuid: string | null;
+}
+
+const vipLabels: Record<number, string> = {
+  1: "عضوية فضية (VIP 1)",
+  2: "عضوية ذهبية (VIP 2)",
+  3: "التاج الذهبي (VIP 3)",
+  4: "التاج الماسي (VIP 4)",
+  5: "التاج الملكي (VIP 5)",
+  6: "VIP 6",
+};
+
 export default function VipRequestsPage() {
-  const [requests, setRequests] = useState<any[]>([]);
+  const [requests, setRequests] = useState<VipRequest[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    setLoading(true);
-    api.vipRequests().then(setRequests).catch(() => {
-      setRequests([
-        { request_id: 1, user_name: "أحمد المنصور", user_uuid: "99281", level: 42, vip_type: "التاج الذهبي (VIP 3)", time: "12 أكتوبر", status: "pending" },
-        { request_id: 2, user_name: "سارة العتيبي", user_uuid: "77412", level: 18, vip_type: "عضوية فضية (VIP 1)", time: "11 أكتوبر", status: "pending" },
-      ]);
-    }).finally(() => setLoading(false));
+    loadRequests();
   }, []);
 
-  const handleAction = async (id: number, action: "approve" | "reject") => {
-    try { await api.vipAction(id, action); } catch {}
-    setRequests(prev => prev.map(r => r.request_id === id ? { ...r, status: action === "approve" ? "approved" : "rejected" } : r));
-    toast({ title: action === "approve" ? "✅ تم القبول" : "❌ تم الرفض" });
+  const loadRequests = async () => {
+    setLoading(true);
+    const { data, error } = await supabase
+      .from("vip_requests")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      console.error("Error loading VIP requests:", error);
+      toast({ title: "خطأ في تحميل الطلبات", variant: "destructive" });
+    }
+    setRequests(data || []);
+    setLoading(false);
+  };
+
+  const formatDate = (dateStr: string) => {
+    const d = new Date(dateStr);
+    return d.toLocaleDateString("ar", { day: "numeric", month: "long" });
   };
 
   return (
@@ -36,37 +64,30 @@ export default function VipRequestsPage() {
       ) : (
         <div className="px-3 space-y-2 mt-2">
           {requests.map(r => (
-            <motion.div key={r.request_id} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}
+            <motion.div key={r.id} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}
               className="bg-card/70 rounded-2xl p-3 border border-border/30">
-              {/* User info */}
               <div className="flex items-center gap-2.5 mb-2">
                 <UserAvatar name={r.user_name} uuid={r.user_uuid} size="md" badge="⭐" />
                 <div className="flex-1 min-w-0">
                   <p className="text-[12px] font-semibold">{r.user_name}</p>
-                  <p className="text-[10px] text-muted-foreground">UUID: {r.user_uuid} • Lv.{r.level}</p>
+                  <p className="text-[10px] text-muted-foreground">UUID: {r.user_uuid}</p>
                 </div>
               </div>
 
               <div className="bg-background/50 rounded-lg px-2.5 py-1.5 mb-2.5 flex items-center justify-between">
-                <span className="text-[10px] text-muted-foreground">{r.time}</span>
-                <span className="text-[11px] text-amber-400 font-medium">⭐ {r.vip_type}</span>
+                <span className="text-[10px] text-muted-foreground">{formatDate(r.created_at)}</span>
+                <span className="text-[11px] text-amber-400 font-medium">⭐ {vipLabels[r.vip_level] || `VIP ${r.vip_level}`}</span>
               </div>
 
-              {r.status === "pending" ? (
-                <div className="flex gap-2">
-                  <button onClick={() => handleAction(r.request_id, "approve")}
-                    className="h-8 rounded-lg text-[11px] font-medium text-primary-foreground active:scale-[0.96] flex items-center gap-1 flex-1 justify-center"
-                    style={{ background: "var(--gradient-button)" }}>
-                    <Check className="w-3.5 h-3.5" /> قبول
-                  </button>
-                  <button onClick={() => handleAction(r.request_id, "reject")}
-                    className="h-8 rounded-lg bg-destructive/15 text-destructive text-[11px] font-medium active:scale-[0.96] flex items-center gap-1 flex-1 justify-center">
-                    <X className="w-3.5 h-3.5" /> رفض
-                  </button>
+              {r.recipient_uuid && (
+                <div className="bg-background/50 rounded-lg px-2.5 py-1.5 mb-2.5">
+                  <span className="text-[10px] text-muted-foreground">هدية لـ: {r.recipient_uuid}</span>
                 </div>
-              ) : (
-                <p className="text-[10px] text-center text-muted-foreground">{r.status === "approved" ? "✅ مقبول" : "❌ مرفوض"}</p>
               )}
+
+              <p className="text-[10px] text-center text-muted-foreground">
+                شهر: {r.request_month}
+              </p>
             </motion.div>
           ))}
         </div>

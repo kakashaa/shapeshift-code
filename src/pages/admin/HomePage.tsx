@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Users, DollarSign, Headphones, AlertTriangle, ChevronLeft } from "lucide-react";
 import { motion } from "framer-motion";
 import { api } from "@/lib/api";
+import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { StatsSkeleton } from "@/components/LoadingSkeleton";
 import { PullToRefresh } from "@/components/PullToRefresh";
@@ -16,6 +17,7 @@ export default function HomePage() {
   const [stats, setStats] = useState<Stats | null>(null);
   const [activities, setActivities] = useState<Activity[]>([]);
   const [loading, setLoading] = useState(true);
+  const [badges, setBadges] = useState({ reports: 0, vip: 0, store: 0, support: 0 });
   const navigate = useNavigate();
   const { name } = useAuth();
   const {
@@ -23,7 +25,7 @@ export default function HomePage() {
     permissionGranted, enableBrowserNotifications,
   } = useNotifications();
 
-  useEffect(() => { loadData(); }, []);
+  useEffect(() => { loadData(); loadBadges(); }, []);
 
   const loadData = async () => {
     setLoading(true);
@@ -43,16 +45,43 @@ export default function HomePage() {
     } finally { setLoading(false); }
   };
 
+  const loadBadges = async () => {
+    try {
+      const [
+        { count: reportsCount },
+        { count: vipCount },
+        { count: supportCount },
+        { count: animatedCount },
+        { count: customGiftCount },
+      ] = await Promise.all([
+        supabase.from("ban_reports").select("*", { count: "exact", head: true }).eq("is_verified", false),
+        supabase.from("vip_requests").select("*", { count: "exact", head: true }),
+        supabase.from("support_tickets").select("*", { count: "exact", head: true }).eq("status", "open"),
+        supabase.from("animated_photo_requests").select("*", { count: "exact", head: true }).eq("status", "pending"),
+        supabase.from("custom_gifts").select("*", { count: "exact", head: true }).eq("status", "pending").eq("is_deleted", false),
+      ]);
+
+      setBadges({
+        reports: reportsCount || 0,
+        vip: vipCount || 0,
+        support: supportCount || 0,
+        store: (animatedCount || 0) + (customGiftCount || 0),
+      });
+    } catch (err) {
+      console.error("Error loading badges:", err);
+    }
+  };
+
   const statCards = stats ? [
     { icon: Users, label: "أونلاين", value: stats.online, accent: "text-success", bg: "bg-success/8", path: "#", badge: 0 },
     { icon: DollarSign, label: "شحنات اليوم", value: `$${stats.charges_today.toLocaleString()}`, accent: "text-primary", bg: "bg-primary/8", path: "/finance", badge: 0 },
-    { icon: Headphones, label: "دعم مفتوح", value: stats.open_support, accent: "text-warning", bg: "bg-warning/8", path: "/support", badge: stats.open_support },
-    { icon: AlertTriangle, label: "بلاغات", value: stats.new_reports, accent: "text-destructive", bg: "bg-destructive/8", path: "/more/reports", badge: stats.new_reports },
+    { icon: Headphones, label: "دعم مفتوح", value: badges.support || stats.open_support, accent: "text-warning", bg: "bg-warning/8", path: "/support", badge: badges.support || stats.open_support },
+    { icon: AlertTriangle, label: "بلاغات", value: badges.reports || stats.new_reports, accent: "text-destructive", bg: "bg-destructive/8", path: "/more/reports", badge: badges.reports || stats.new_reports },
   ] : [];
 
   const activityIcons: Record<string, string> = { support: "🎧", charge: "💰", monitor: "👁", report: "🚨", action: "✅" };
 
-  const handleRefresh = useCallback(async () => { await loadData(); }, []);
+  const handleRefresh = useCallback(async () => { await Promise.all([loadData(), loadBadges()]); }, []);
 
   return (
     <PullToRefresh onRefresh={handleRefresh}>
