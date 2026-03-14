@@ -29,6 +29,8 @@ export default function SettingsPage() {
   const [demoNotif, setDemoNotif] = useState(() =>
     localStorage.getItem("ghala_demo_notif") !== "0"
   );
+  const [pushEnabled, setPushEnabled] = useState(false);
+  const [pushLoading, setPushLoading] = useState(false);
 
   // Language
   const [language, setLanguage] = useState<Language>(() =>
