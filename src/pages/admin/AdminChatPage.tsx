@@ -1,226 +1,260 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { Send, ArrowRight, CheckCheck, Users } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { Send, ArrowRight, CheckCheck, Users, Plus, User, Crown } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import { motion } from "framer-motion";
+import { api } from "@/lib/api";
+import { motion, AnimatePresence } from "framer-motion";
 import { UserAvatar } from "@/components/UserAvatar";
+import { PageHeader } from "@/components/PageHeader";
 
-interface ChatMessage {
+interface Chat {
   id: string;
-  admin_name: string;
-  message: string;
-  created_at: string;
+  name: string;
+  type: string;
+  members: string[];
+  last_message: { text: string; sender_name: string; time: string } | null;
+  unread: number;
 }
 
-// We'll use the support_chat_messages table with a special chat_id for admin chat
-const ADMIN_CHAT_ID = "admin-group-chat";
+interface Message {
+  id: string;
+  sender: string;
+  sender_name: string;
+  text: string;
+  type: string;
+  time: string;
+}
 
 export default function AdminChatPage() {
   const navigate = useNavigate();
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const { name, isOwner, isSuperAdmin } = useAuth();
+  const [chats, setChats] = useState<Chat[]>([]);
+  const [activeChat, setActiveChat] = useState<string | null>(null);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
-  const { name } = useAuth();
+  const [loading, setLoading] = useState(true);
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const username = localStorage.getItem("ghala_username") || localStorage.getItem("ghala_name") || "";
 
-  useEffect(() => {
-    loadMessages();
-
-    // Real-time subscription
-    const channel = supabase
-      .channel("admin-chat")
-      .on("postgres_changes", {
-        event: "INSERT",
-        schema: "public",
-        table: "support_chat_messages",
-        filter: `chat_id=eq.${ADMIN_CHAT_ID}`,
-      }, (payload) => {
-        const msg = payload.new as any;
-        const newMsg: ChatMessage = {
-          id: msg.id,
-          admin_name: msg.sender_name,
-          message: msg.message,
-          created_at: msg.created_at,
-        };
-        setMessages(prev => {
-          if (prev.some(m => m.id === newMsg.id)) return prev;
-          return [...prev, newMsg];
-        });
-      })
-      .subscribe();
-
-    return () => { supabase.removeChannel(channel); };
+  // Load chat list
+  const loadChats = useCallback(async () => {
+    try {
+      const res = await api.chatList();
+      if (res.success) setChats(res.chats || []);
+    } catch {}
+    setLoading(false);
   }, []);
 
+  // Load messages for active chat
+  const loadMessages = useCallback(async () => {
+    if (!activeChat) return;
+    try {
+      const res = await api.chatMessages(activeChat);
+      if (res.success) setMessages(res.messages || []);
+    } catch {}
+  }, [activeChat]);
+
+  useEffect(() => { loadChats(); }, [loadChats]);
+  useEffect(() => { loadMessages(); }, [loadMessages]);
+  useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages.length]);
+
+  // Auto-refresh every 5s
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages.length]);
-
-  const loadMessages = async () => {
-    const { data, error } = await supabase
-      .from("support_chat_messages")
-      .select("*")
-      .eq("chat_id", ADMIN_CHAT_ID)
-      .order("created_at", { ascending: true })
-      .limit(200);
-
-    if (data) {
-      setMessages(data.map(m => ({
-        id: m.id,
-        admin_name: m.sender_name,
-        message: m.message,
-        created_at: m.created_at,
-      })));
-    }
-    if (error) console.error("Error loading admin chat:", error);
-  };
+    if (!activeChat) return;
+    const interval = setInterval(loadMessages, 5000);
+    return () => clearInterval(interval);
+  }, [activeChat, loadMessages]);
 
   const handleSend = async () => {
-    if (!input.trim()) return;
+    if (!input.trim() || !activeChat) return;
     const msg = input;
     setInput("");
 
     // Optimistic add
-    const tempId = `temp-${Date.now()}`;
-    const newMsg: ChatMessage = {
-      id: tempId,
-      admin_name: name || "أدمن",
-      message: msg,
-      created_at: new Date().toISOString(),
+    const tempMsg: Message = {
+      id: `temp-${Date.now()}`,
+      sender: username,
+      sender_name: name || "أنا",
+      text: msg,
+      type: "text",
+      time: new Date().toISOString(),
     };
-    setMessages(prev => [...prev, newMsg]);
+    setMessages(prev => [...prev, tempMsg]);
 
-    const { error } = await supabase
-      .from("support_chat_messages")
-      .insert({
-        chat_id: ADMIN_CHAT_ID,
-        message: msg,
-        sender_name: name || "أدمن",
-        sender_type: "admin",
-        sender_uuid: "admin",
-      });
-
-    if (error) {
-      console.error("Error sending:", error);
-      // Remove optimistic message on error
-      setMessages(prev => prev.filter(m => m.id !== tempId));
+    try {
+      const res = await api.chatSend(activeChat, msg);
+      if (res.success && res.message) {
+        setMessages(prev => prev.map(m => m.id === tempMsg.id ? res.message : m));
+      }
+    } catch {
+      setMessages(prev => prev.filter(m => m.id !== tempMsg.id));
     }
-
     inputRef.current?.focus();
   };
 
-  const isMe = (adminName: string) => adminName === (name || "أدمن");
-
-  const formatTime = (dateStr: string) => {
-    const d = new Date(dateStr);
-    return d.toLocaleTimeString("ar", { hour: "2-digit", minute: "2-digit" });
+  // Create default chats for owner
+  const createChat = async (chatId: string) => {
+    await api.chatSend(chatId, "مرحباً 👋");
+    setActiveChat(chatId);
+    loadChats();
+    loadMessages();
   };
 
-  // Group consecutive messages from same sender
-  const groupedMessages = messages.map((msg, i) => {
-    const prev = messages[i - 1];
-    const next = messages[i + 1];
-    const isFirst = !prev || prev.admin_name !== msg.admin_name;
-    const isLast = !next || next.admin_name !== msg.admin_name;
-    return { ...msg, isFirst, isLast };
-  });
+  const isMe = (sender: string) => sender === username || sender === name;
+
+  const formatTime = (t: string) => {
+    try {
+      const d = new Date(t);
+      const now = new Date();
+      const diff = now.getTime() - d.getTime();
+      if (diff < 60000) return "الآن";
+      if (diff < 3600000) return `${Math.floor(diff/60000)}د`;
+      return d.toLocaleTimeString("ar", { hour: "2-digit", minute: "2-digit" });
+    } catch { return t; }
+  };
+
+  const getChatIcon = (type: string) => {
+    if (type === "owner_super") return Crown;
+    if (type === "super_group") return Users;
+    return User;
+  };
+
+  // ─── CHAT LIST VIEW ───
+  if (!activeChat) {
+    // Available chats to create (for owner)
+    const superAdmins = ["janjoon", "fransi", "miftah", "mars", "hamzawi", "relax", "mali", "bilal"];
+    const existingChatIds = chats.map(c => c.id);
+
+    return (
+      <div className="min-h-screen bg-background pb-24">
+        <PageHeader title="💬 الدردشات" showBack />
+        
+        <div className="px-4 mt-4 space-y-2">
+          {/* Existing chats */}
+          {chats.length === 0 && !loading && (
+            <div className="text-center py-8 text-muted-foreground text-sm">
+              لا توجد دردشات بعد
+            </div>
+          )}
+
+          {chats.map(chat => {
+            const Icon = getChatIcon(chat.type);
+            return (
+              <motion.button
+                key={chat.id}
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                onClick={() => setActiveChat(chat.id)}
+                className="w-full flex items-center gap-3 p-3 bg-card rounded-xl border border-border text-right"
+              >
+                <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                  <Icon className="w-5 h-5 text-primary" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm font-medium truncate">{chat.name}</span>
+                    {chat.last_message && (
+                      <span className="text-[10px] text-muted-foreground">{formatTime(chat.last_message.time)}</span>
+                    )}
+                  </div>
+                  {chat.last_message && (
+                    <p className="text-xs text-muted-foreground truncate mt-0.5">
+                      {chat.last_message.sender_name}: {chat.last_message.text}
+                    </p>
+                  )}
+                </div>
+                {chat.unread > 0 && (
+                  <span className="min-w-[20px] h-5 rounded-full bg-primary text-primary-foreground text-[10px] font-bold flex items-center justify-center px-1.5">
+                    {chat.unread}
+                  </span>
+                )}
+              </motion.button>
+            );
+          })}
+
+          {/* Quick-create buttons */}
+          {isOwner() && (
+            <div className="pt-4 space-y-2">
+              <p className="text-xs text-muted-foreground px-1">بدء دردشة جديدة:</p>
+              
+              {!existingChatIds.includes("super_group") && (
+                <button onClick={() => createChat("super_group")}
+                  className="w-full flex items-center gap-3 p-3 bg-card/50 rounded-xl border border-dashed border-border">
+                  <Plus className="w-4 h-4 text-muted-foreground" />
+                  <span className="text-sm text-muted-foreground">مجموعة الإدارة (كل السوبر أدمن)</span>
+                </button>
+              )}
+
+              {superAdmins.filter(sa => !existingChatIds.includes(`owner_${sa}`)).slice(0, 3).map(sa => (
+                <button key={sa} onClick={() => createChat(`owner_${sa}`)}
+                  className="w-full flex items-center gap-3 p-3 bg-card/50 rounded-xl border border-dashed border-border">
+                  <Plus className="w-4 h-4 text-muted-foreground" />
+                  <span className="text-sm text-muted-foreground">دردشة مع {sa}</span>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // ─── CHAT MESSAGES VIEW ───
+  const currentChat = chats.find(c => c.id === activeChat);
 
   return (
-    <div className="min-h-screen bg-background flex flex-col h-screen">
+    <div className="flex flex-col h-screen bg-background">
       {/* Header */}
       <div className="bg-card border-b border-border px-3 py-2.5 flex items-center gap-3 sticky top-0 z-20">
-        <button onClick={() => navigate(-1)} className="p-1 -mr-1 rounded-full hover:bg-secondary transition-colors">
+        <button onClick={() => { setActiveChat(null); loadChats(); }} className="p-1 -mr-1">
           <ArrowRight className="w-5 h-5 text-muted-foreground" />
         </button>
-        <div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary/80 to-accent flex items-center justify-center shrink-0">
-          <Users className="w-4 h-4 text-primary-foreground" />
+        <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center">
+          {(() => { const Icon = getChatIcon(currentChat?.type || ""); return <Icon className="w-4 h-4 text-primary" />; })()}
         </div>
-        <div className="flex-1 min-w-0">
-          <h3 className="text-sm font-semibold text-foreground">شات الأدمنز</h3>
-          <p className="text-[10px] text-muted-foreground">مجموعة الإدارة • مباشر</p>
+        <div className="flex-1">
+          <h3 className="text-sm font-semibold">{currentChat?.name || activeChat}</h3>
+          <p className="text-[10px] text-muted-foreground">{currentChat?.members?.length || 0} أعضاء</p>
         </div>
       </div>
 
-      {/* Messages Area */}
-      <div className="flex-1 overflow-y-auto relative" style={{ background: "hsl(var(--background))" }}>
-        <div className="absolute inset-0 opacity-[0.03]" style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
-        }} />
-
-        <div className="relative p-3 space-y-0.5 pb-4">
-          <div className="flex justify-center my-3">
-            <span className="bg-card/80 backdrop-blur-sm text-[10px] text-muted-foreground px-3 py-1 rounded-full border border-border/50">
-              اليوم
-            </span>
-          </div>
-
-          {groupedMessages.map((msg, i) => {
-            const mine = isMe(msg.admin_name);
+      {/* Messages */}
+      <div className="flex-1 overflow-y-auto p-3 space-y-1">
+        <AnimatePresence>
+          {messages.map((msg, i) => {
+            const mine = isMe(msg.sender);
+            const showName = !mine && (i === 0 || messages[i-1]?.sender !== msg.sender);
 
             return (
-              <motion.div
-                key={msg.id}
-                initial={{ opacity: 0, y: 6 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.15, delay: Math.min(i * 0.02, 0.5) }}
-                className={`flex items-end gap-1.5 ${msg.isLast ? "mb-2" : "mb-0.5"}`}
-              >
-                <div className="w-7 shrink-0">
-                  {msg.isLast ? (
-                    <UserAvatar name={msg.admin_name} size="xs" />
-                  ) : null}
-                </div>
-
-                <div className={`relative max-w-[78%] px-3 py-2 bg-card border border-border/50 ${
-                  msg.isFirst && msg.isLast
-                    ? "rounded-2xl rounded-br-sm"
-                    : msg.isFirst
-                    ? "rounded-t-2xl rounded-bl-2xl rounded-br-sm"
-                    : msg.isLast
-                    ? "rounded-b-2xl rounded-bl-2xl rounded-tr-sm"
-                    : "rounded-l-2xl rounded-r-sm"
+              <motion.div key={msg.id} initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }}
+                className={`flex ${mine ? "justify-end" : "justify-start"}`}>
+                <div className={`max-w-[80%] px-3 py-2 rounded-2xl ${
+                  mine ? "bg-primary text-primary-foreground rounded-br-sm" : "bg-card border border-border rounded-bl-sm"
                 }`}>
-                  {msg.isFirst && (
-                    <p className="text-[10px] font-bold mb-0.5 text-primary">
-                      {msg.admin_name}
-                      {mine && " (أنت)"}
-                    </p>
-                  )}
-                  <p className="text-[13px] leading-relaxed text-foreground">{msg.message}</p>
+                  {showName && <p className="text-[10px] font-bold mb-0.5 text-primary">{msg.sender_name}</p>}
+                  <p className="text-[13px] leading-relaxed">{msg.text}</p>
                   <div className="flex items-center justify-end gap-1 mt-0.5">
-                    <span className="text-[10px] text-muted-foreground">{formatTime(msg.created_at)}</span>
-                    {mine && <CheckCheck className="w-3 h-3 text-primary/60" />}
+                    <span className="text-[10px] opacity-70">{formatTime(msg.time)}</span>
+                    {mine && <CheckCheck className="w-3 h-3 opacity-60" />}
                   </div>
                 </div>
               </motion.div>
             );
           })}
-          <div ref={bottomRef} />
-        </div>
+        </AnimatePresence>
+        <div ref={bottomRef} />
       </div>
 
-      {/* Input Bar */}
-      <div className="bg-card/95 backdrop-blur-sm border-t border-border px-3 py-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] mb-14">
-        <div className="flex items-end gap-2">
-          <div className="flex-1 bg-secondary rounded-2xl flex items-end">
-            <input
-              ref={inputRef}
-              value={input}
-              onChange={e => setInput(e.target.value)}
-              onKeyDown={e => e.key === "Enter" && !e.shiftKey && handleSend()}
-              placeholder="اكتب رسالة..."
-              className="flex-1 bg-transparent px-4 py-2.5 text-sm focus:outline-none min-h-[40px] placeholder:text-muted-foreground"
-            />
-          </div>
-          <motion.button
-            whileTap={{ scale: 0.9 }}
-            onClick={handleSend}
-            disabled={!input.trim()}
-            className="w-10 h-10 rounded-full flex items-center justify-center shrink-0 disabled:opacity-30 transition-all"
-            style={{ background: "var(--gradient-button)" }}
-          >
-            <Send className="w-4 h-4 text-primary-foreground rtl:-scale-x-100" />
+      {/* Input */}
+      <div className="bg-card border-t border-border px-3 py-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] mb-14">
+        <div className="flex gap-2">
+          <input ref={inputRef} value={input} onChange={e => setInput(e.target.value)}
+            onKeyDown={e => e.key === "Enter" && handleSend()}
+            placeholder="اكتب رسالة..." className="flex-1 h-10 rounded-full bg-secondary px-4 text-sm" />
+          <motion.button whileTap={{ scale: 0.9 }} onClick={handleSend} disabled={!input.trim()}
+            className="w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center disabled:opacity-30">
+            <Send className="w-4 h-4 rtl:-scale-x-100" />
           </motion.button>
         </div>
       </div>

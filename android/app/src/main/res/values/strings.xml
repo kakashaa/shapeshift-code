@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">GhalaAdmin</string>
+    <string name="title_activity_main">GhalaAdmin</string>
+    <string name="package_name">com.galachat.admin</string>
+    <string name="custom_url_scheme">com.galachat.admin</string>
+</resources>
