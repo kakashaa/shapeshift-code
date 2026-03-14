@@ -1,11 +1,13 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { Users, DollarSign, Headphones, AlertTriangle, Bell, ChevronLeft } from "lucide-react";
+import { Users, DollarSign, Headphones, AlertTriangle, ChevronLeft } from "lucide-react";
 import { motion } from "framer-motion";
 import { api } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
 import { StatsSkeleton } from "@/components/LoadingSkeleton";
 import { PullToRefresh } from "@/components/PullToRefresh";
+import { useNotifications } from "@/hooks/useNotifications";
+import { NotificationCenter } from "@/components/NotificationCenter";
 
 interface Stats { online: number; charges_today: number; open_support: number; new_reports: number; }
 interface Activity { type: string; text: string; time: string; link: string; }
