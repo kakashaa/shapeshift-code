@@ -26,7 +26,7 @@ export default function IdChangePage() {
   const loadRequests = async () => {
     setLoading(true);
     const { data, error } = await supabase
-      .from("id_changes")
+      .from("id_changes" as any)
       .select("*")
       .order("created_at", { ascending: false });
 
