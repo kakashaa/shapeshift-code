@@ -1,4 +1,4 @@
-const API_BASE = "https://hola-chat.com/admin-panel-api.php";
+const API_BASE = "https://galachat.site/admin-panel-api.php";
 
 export function isDemoMode(): boolean {
   return localStorage.getItem("ghala_demo") === "1";
