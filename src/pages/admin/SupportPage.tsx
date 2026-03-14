@@ -28,7 +28,10 @@ export default function SupportPage() {
     } finally { setLoading(false); }
   };
 
+  const handleRefresh = useCallback(async () => { await loadTickets(); }, [status]);
+
   return (
+    <PullToRefresh onRefresh={handleRefresh}>
     <div className="pb-20">
       <PageHeader title="الدعم الفني" />
       
