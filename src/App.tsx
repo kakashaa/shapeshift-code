@@ -61,6 +61,7 @@ function ProtectedRoute({ children, allowedType }: { children: React.ReactNode; 
 
 function AppRoutes() {
   const { loggedIn, type } = useAuth();
+  const location = useLocation();
 
   return (
     <AnimatedRoutes>
