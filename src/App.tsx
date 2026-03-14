@@ -113,6 +113,27 @@ function AppRoutes() {
   );
 }
 
+function AppWithSplash() {
+  const [showSplash, setShowSplash] = useState(() => {
+    const seen = sessionStorage.getItem("splash_shown");
+    return !seen;
+  });
+
+  const handleSplashFinish = useCallback(() => {
+    sessionStorage.setItem("splash_shown", "1");
+    setShowSplash(false);
+  }, []);
+
+  return (
+    <>
+      {showSplash && <SplashScreen onFinish={handleSplashFinish} />}
+      <AnimatedRouteWrapper>
+        <AppRoutes />
+      </AnimatedRouteWrapper>
+    </>
+  );
+}
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
@@ -120,9 +141,7 @@ const App = () => (
         <Toaster />
         <AuthProvider>
           <BrowserRouter>
-            <AnimatedRouteWrapper>
-              <AppRoutes />
-            </AnimatedRouteWrapper>
+            <AppWithSplash />
           </BrowserRouter>
         </AuthProvider>
       </ThemeProvider>
