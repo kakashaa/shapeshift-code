@@ -1,5 +1,6 @@
 import { ArrowRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
 
 interface PageHeaderProps {
   title: string;
@@ -11,19 +12,20 @@ interface PageHeaderProps {
 export function PageHeader({ title, subtitle, showBack, actions }: PageHeaderProps) {
   const navigate = useNavigate();
   return (
-    <div className="sticky top-0 z-40 bg-background/80 backdrop-blur-2xl border-b border-border/30">
-      <div className="flex items-center justify-between px-4 h-12">
+    <div className="sticky top-0 z-40 nav-glass">
+      <div className="flex items-center justify-between px-4 h-13">
         <div className="flex items-center gap-3">
           {showBack && (
-            <button
+            <motion.button
+              whileTap={{ scale: 0.85 }}
               onClick={() => navigate(-1)}
-              className="w-8 h-8 rounded-xl bg-secondary/80 flex items-center justify-center active:scale-90 transition-all hover:bg-secondary"
+              className="w-9 h-9 rounded-xl icon-3d active:scale-90 transition-all"
             >
               <ArrowRight className="w-4 h-4 text-muted-foreground" />
-            </button>
+            </motion.button>
           )}
           <div>
-            <h1 className="text-[15px] font-bold leading-tight">{title}</h1>
+            <h1 className="text-[15px] font-bold leading-tight tracking-tight">{title}</h1>
             {subtitle && <p className="text-[10px] text-muted-foreground leading-none mt-0.5">{subtitle}</p>}
           </div>
         </div>
