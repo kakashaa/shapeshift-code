@@ -106,6 +106,7 @@ function AppRoutes() {
       <Route path="/more/activity-log" element={<ProtectedRoute allowedType="admin"><AnimatedPage><ActivityLogPage /></AnimatedPage></ProtectedRoute>} />
       <Route path="/more/id-change" element={<ProtectedRoute allowedType="admin"><AnimatedPage><IdChangePage /></AnimatedPage></ProtectedRoute>} />
       <Route path="/more/registrations" element={<ProtectedRoute allowedType="admin"><AnimatedPage><RegistrationsPage /></AnimatedPage></ProtectedRoute>} />
+      <Route path="/more/settings" element={<ProtectedRoute allowedType="admin"><AnimatedPage><SettingsPage /></AnimatedPage></ProtectedRoute>} />
 
       {/* User routes */}
       <Route element={<ProtectedRoute allowedType="user"><UserLayout /></ProtectedRoute>}>
