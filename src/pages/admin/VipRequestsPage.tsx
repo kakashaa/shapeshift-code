@@ -4,7 +4,7 @@ import { api } from "@/lib/api";
 import { PageHeader } from "@/components/PageHeader";
 import { CardSkeleton } from "@/components/LoadingSkeleton";
 import { EmptyState } from "@/components/EmptyState";
-import { Star } from "lucide-react";
+import { Star, Check, X } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 
 export default function VipRequestsPage() {
@@ -24,36 +24,49 @@ export default function VipRequestsPage() {
   const handleAction = async (id: number, action: "approve" | "reject") => {
     try { await api.vipAction(id, action); } catch {}
     setRequests(prev => prev.map(r => r.request_id === id ? { ...r, status: action === "approve" ? "approved" : "rejected" } : r));
-    toast({ title: action === "approve" ? "✅ تم قبول الطلب" : "❌ تم رفض الطلب" });
+    toast({ title: action === "approve" ? "✅ تم القبول" : "❌ تم الرفض" });
   };
 
   return (
     <div className="pb-20">
       <PageHeader title="طلبات VIP" showBack />
       {loading ? <CardSkeleton /> : requests.length === 0 ? (
-        <EmptyState icon={Star} title="لا توجد طلبات" description="ما فيه طلبات VIP حالياً" />
+        <EmptyState icon={Star} title="لا توجد طلبات" />
       ) : (
-        <div className="p-4 space-y-3">
+        <div className="px-3 space-y-2 mt-2">
           {requests.map(r => (
-            <motion.div key={r.request_id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="bg-card rounded-2xl p-4 space-y-3">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-full bg-secondary flex items-center justify-center text-lg font-bold">{r.user_name[0]}</div>
-                <div className="flex-1">
-                  <p className="font-semibold text-sm">{r.user_name}</p>
-                  <p className="text-xs text-muted-foreground">UUID: {r.user_uuid} • المستوى {r.level}</p>
+            <motion.div key={r.request_id} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}
+              className="bg-card/70 rounded-2xl p-3 border border-border/30">
+              {/* User info */}
+              <div className="flex items-center gap-2.5 mb-2">
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-amber-500/30 to-amber-500/10 flex items-center justify-center text-sm font-bold shrink-0">
+                  {r.user_name[0]}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[12px] font-semibold">{r.user_name}</p>
+                  <p className="text-[10px] text-muted-foreground">UUID: {r.user_uuid} • Lv.{r.level}</p>
                 </div>
               </div>
-              <div className="bg-secondary/50 rounded-xl p-3 text-sm">
-                <p>نوع الباقة: <span className="text-primary font-medium">{r.vip_type}</span></p>
-                <p className="text-xs text-muted-foreground mt-1">تاريخ الطلب: {r.time}</p>
+
+              <div className="bg-background/50 rounded-lg px-2.5 py-1.5 mb-2.5 flex items-center justify-between">
+                <span className="text-[10px] text-muted-foreground">{r.time}</span>
+                <span className="text-[11px] text-amber-400 font-medium">⭐ {r.vip_type}</span>
               </div>
+
               {r.status === "pending" ? (
                 <div className="flex gap-2">
-                  <button onClick={() => handleAction(r.request_id, "approve")} className="flex-1 h-10 rounded-xl text-sm font-medium text-primary-foreground active:scale-[0.97]" style={{ background: "var(--gradient-button)" }}>قبول الطلب</button>
-                  <button onClick={() => handleAction(r.request_id, "reject")} className="flex-1 h-10 rounded-xl bg-destructive/20 text-destructive text-sm font-medium active:scale-[0.97]">رفض</button>
+                  <button onClick={() => handleAction(r.request_id, "approve")}
+                    className="h-8 rounded-lg text-[11px] font-medium text-primary-foreground active:scale-[0.96] flex items-center gap-1 flex-1 justify-center"
+                    style={{ background: "var(--gradient-button)" }}>
+                    <Check className="w-3.5 h-3.5" /> قبول
+                  </button>
+                  <button onClick={() => handleAction(r.request_id, "reject")}
+                    className="h-8 rounded-lg bg-destructive/15 text-destructive text-[11px] font-medium active:scale-[0.96] flex items-center gap-1 flex-1 justify-center">
+                    <X className="w-3.5 h-3.5" /> رفض
+                  </button>
                 </div>
               ) : (
-                <p className="text-xs text-center text-muted-foreground">{r.status === "approved" ? "✅ تم القبول" : "❌ مرفوض"}</p>
+                <p className="text-[10px] text-center text-muted-foreground">{r.status === "approved" ? "✅ مقبول" : "❌ مرفوض"}</p>
               )}
             </motion.div>
           ))}

@@ -8,37 +8,26 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-6 bg-background">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-sm flex flex-col items-center gap-8"
-      >
+      <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-sm flex flex-col items-center gap-6">
         {/* Logo */}
-        <div className="text-center space-y-2">
-          <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-primary to-accent mx-auto flex items-center justify-center mb-4">
-            <span className="text-3xl font-black text-primary-foreground">G</span>
+        <div className="text-center space-y-1.5">
+          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-accent mx-auto flex items-center justify-center mb-3">
+            <span className="text-2xl font-black text-primary-foreground">G</span>
           </div>
-          <h1 className="text-3xl font-black">GhalaLive</h1>
-          <p className="text-muted-foreground text-sm">لوحة الإدارة</p>
+          <h1 className="text-2xl font-black">GhalaLive</h1>
+          <p className="text-muted-foreground text-[11px]">لوحة الإدارة</p>
         </div>
 
-        {/* Login buttons */}
-        <div className="w-full space-y-4">
-          <button
-            onClick={() => navigate("/login/admin")}
-            className="w-full h-14 rounded-2xl font-bold text-lg flex items-center justify-center gap-3 text-primary-foreground active:scale-[0.97] transition-transform"
-            style={{ background: "var(--gradient-button)" }}
-          >
-            <Key className="w-5 h-5" />
-            دخول أدمن
+        {/* Buttons */}
+        <div className="w-full space-y-3">
+          <button onClick={() => navigate("/login/admin")}
+            className="w-full h-12 rounded-2xl font-bold text-sm flex items-center justify-center gap-2 text-primary-foreground active:scale-[0.96] transition-transform"
+            style={{ background: "var(--gradient-button)" }}>
+            <Key className="w-4 h-4" /> دخول أدمن
           </button>
-
-          <button
-            onClick={() => navigate("/login/user")}
-            className="w-full h-14 rounded-2xl bg-secondary text-secondary-foreground font-bold text-lg flex items-center justify-center gap-3 active:scale-[0.97] transition-transform"
-          >
-            <User className="w-5 h-5" />
-            دخول مستخدم
+          <button onClick={() => navigate("/login/user")}
+            className="w-full h-12 rounded-2xl bg-card text-foreground font-bold text-sm flex items-center justify-center gap-2 active:scale-[0.96] transition-transform border border-border/50">
+            <User className="w-4 h-4" /> دخول مستخدم
           </button>
         </div>
       </motion.div>

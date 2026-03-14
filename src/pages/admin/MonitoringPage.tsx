@@ -4,7 +4,7 @@ import { api } from "@/lib/api";
 import { PageHeader } from "@/components/PageHeader";
 import { CardSkeleton } from "@/components/LoadingSkeleton";
 import { EmptyState } from "@/components/EmptyState";
-import { Eye, ShieldOff } from "lucide-react";
+import { Eye, Ban, X } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 
 export default function MonitoringPage() {
@@ -18,24 +18,18 @@ export default function MonitoringPage() {
   }, []);
 
   const loadMessages = async () => {
-    try {
-      const data = await api.suspiciousMessages(50);
-      setMessages(data);
-    } catch {
+    try { const data = await api.suspiciousMessages(50); setMessages(data); } catch {
       setMessages([
         { msg_id: 1, sender_name: "أحمد", sender_uuid: "5432", receiver_name: "سارة", receiver_uuid: "8765", keyword: "شغف شات", message: "تعال على شغف شات حلو ومليان ناس", time: "10:20", actioned: false },
-        { msg_id: 2, sender_name: "خالد", sender_uuid: "3333", receiver_name: "نوره", receiver_uuid: "4444", keyword: "واتساب", message: "أرسلي رقمك واتساب", time: "10:15", actioned: false },
+        { msg_id: 2, sender_name: "خالد", sender_uuid: "3333", receiver_name: "نوره", receiver_uuid: "4444", keyword: "واتساب", message: "أرسلي رقمك واتساب عشان نتواصل", time: "10:15", actioned: false },
+        { msg_id: 3, sender_name: "فهد", sender_uuid: "7777", receiver_name: "منى", receiver_uuid: "8888", keyword: "تلجرام", message: "عندي قروب تلجرام تعالي", time: "09:50", actioned: false },
       ]);
-    } finally {
-      setLoading(false);
-    }
+    } finally { setLoading(false); }
   };
 
   const handleBan = async (msg: any) => {
-    if (!confirm(`هل تريد حظر ${msg.sender_name} (UUID: ${msg.sender_uuid})؟`)) return;
-    try {
-      await api.banUser(msg.sender_uuid, "ترويج لتطبيق منافس");
-    } catch {}
+    if (!confirm(`حظر ${msg.sender_name} (${msg.sender_uuid})؟`)) return;
+    try { await api.banUser(msg.sender_uuid, "ترويج"); } catch {}
     setMessages(prev => prev.map(m => m.msg_id === msg.msg_id ? { ...m, actioned: true, action_by: "أدمن" } : m));
     toast({ title: `تم حظر ${msg.sender_name}` });
   };
@@ -47,47 +41,55 @@ export default function MonitoringPage() {
 
   return (
     <div className="pb-20">
-      <PageHeader title="مراقبة الرسائل" subtitle="رسائل مشبوهة" />
-
+      <PageHeader title="المراقبة" subtitle="رسائل مشبوهة" />
       {loading ? <CardSkeleton /> : messages.length === 0 ? (
-        <EmptyState icon={Eye} title="لا توجد رسائل مشبوهة" description="كل شي نظيف حالياً 🎉" />
+        <EmptyState icon={Eye} title="لا توجد رسائل مشبوهة" description="كل شي نظيف 🎉" />
       ) : (
-        <div className="p-4 space-y-3">
+        <div className="px-3 space-y-2 mt-2">
           <AnimatePresence>
             {messages.map((msg) => (
               <motion.div
                 key={msg.msg_id}
                 layout
-                initial={{ opacity: 0, y: 10 }}
+                initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, x: -100 }}
-                className={`bg-card rounded-2xl p-4 space-y-3 ${msg.actioned ? "opacity-60 border border-destructive/30" : ""}`}
+                exit={{ opacity: 0, x: -80 }}
+                className={`bg-card/70 rounded-2xl p-3 border border-border/30 ${msg.actioned ? "opacity-50" : ""}`}
               >
-                <div className="flex items-center gap-2">
-                  <Eye className="w-4 h-4 text-warning" />
-                  <span className="text-sm font-bold">رسالة مشبوهة</span>
-                  <span className="text-xs text-muted-foreground mr-auto">{msg.time}</span>
+                {/* Header */}
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-[10px] text-muted-foreground">{msg.time}</span>
+                  <span className="text-[10px] bg-amber-500/15 text-amber-400 px-2 py-0.5 rounded-full font-medium">🔑 {msg.keyword}</span>
                 </div>
 
-                <div className="space-y-1 text-sm">
-                  <p>📤 {msg.sender_name} <span className="text-muted-foreground">(UUID: {msg.sender_uuid})</span></p>
-                  <p>📥 → {msg.receiver_name} <span className="text-muted-foreground">(UUID: {msg.receiver_uuid})</span></p>
-                  <p className="text-xs"><span className="bg-warning/20 text-warning px-2 py-0.5 rounded-full">🔑 {msg.keyword}</span></p>
+                {/* Users */}
+                <div className="flex items-center gap-2 mb-2 text-[12px]">
+                  <div className="flex items-center gap-1.5">
+                    <div className="w-6 h-6 rounded-full bg-gradient-to-br from-red-500/30 to-red-500/10 flex items-center justify-center text-[10px] font-bold">{msg.sender_name[0]}</div>
+                    <span>{msg.sender_name}</span>
+                  </div>
+                  <span className="text-muted-foreground text-[10px]">→</span>
+                  <div className="flex items-center gap-1.5">
+                    <div className="w-6 h-6 rounded-full bg-gradient-to-br from-primary/30 to-primary/10 flex items-center justify-center text-[10px] font-bold">{msg.receiver_name[0]}</div>
+                    <span>{msg.receiver_name}</span>
+                  </div>
                 </div>
 
-                <div className="bg-secondary/50 rounded-xl p-3">
-                  <p className="text-sm leading-relaxed">"{msg.message}"</p>
+                {/* Message */}
+                <div className="bg-background/50 rounded-lg px-2.5 py-2 mb-2.5">
+                  <p className="text-[11px] leading-relaxed text-muted-foreground">"{msg.message}"</p>
                 </div>
 
+                {/* Actions - compact icon buttons */}
                 {msg.actioned ? (
-                  <p className="text-xs text-destructive">🚫 حظره: {msg.action_by}</p>
+                  <p className="text-[10px] text-destructive text-center">🚫 تم الحظر</p>
                 ) : (
                   <div className="flex gap-2">
-                    <button onClick={() => handleBan(msg)} className="flex-1 h-10 rounded-xl bg-destructive text-destructive-foreground text-sm font-medium active:scale-[0.97] transition-transform flex items-center justify-center gap-1">
-                      <ShieldOff className="w-4 h-4" /> حظر المرسل
+                    <button onClick={() => handleBan(msg)} className="flex-1 h-8 rounded-lg bg-destructive/15 text-destructive text-[11px] font-medium active:scale-[0.96] transition-transform flex items-center justify-center gap-1">
+                      <Ban className="w-3.5 h-3.5" /> حظر
                     </button>
-                    <button onClick={() => handleIgnore(msg.msg_id)} className="flex-1 h-10 rounded-xl bg-secondary text-secondary-foreground text-sm font-medium active:scale-[0.97] transition-transform">
-                      👀 تجاهل
+                    <button onClick={() => handleIgnore(msg.msg_id)} className="flex-1 h-8 rounded-lg bg-secondary text-muted-foreground text-[11px] font-medium active:scale-[0.96] transition-transform flex items-center justify-center gap-1">
+                      <X className="w-3.5 h-3.5" /> تجاهل
                     </button>
                   </div>
                 )}
