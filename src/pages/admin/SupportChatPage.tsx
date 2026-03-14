@@ -68,7 +68,7 @@ export default function SupportChatPage() {
 
     // Load ticket info
     const { data: ticketData } = await supabase
-      .from("support_tickets")
+      .from("support_tickets" as any)
       .select("id, user_name, user_uuid, subject, status")
       .eq("id", ticketId)
       .single();
