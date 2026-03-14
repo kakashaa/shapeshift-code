@@ -299,5 +299,13 @@ export const api = {
   // V2: AI Assistant
   aiAssistant: (question: string) =>
     request<any>("ai_assistant", { question }, "POST"),
+
+  // V2: User actions (HMAC API)
+  userVipRequest: (vip_level: number) =>
+    request<any>("user_vip_request", { vip_level }, "POST"),
+  userIdChange: (new_uuid: string) =>
+    request<any>("user_id_change_request", { new_uuid }, "POST"),
+  userCheckTransaction: (amount: number) =>
+    request<any>("user_check_transaction", { amount }, "POST"),
 };
 // rebuild 1773494525

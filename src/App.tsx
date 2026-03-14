@@ -37,6 +37,7 @@ import AnalyticsPage from "@/pages/admin/AnalyticsPage";
 import UserDashboard from "@/pages/user/UserDashboard";
 import UserChargesPage from "@/pages/user/UserChargesPage";
 import UserSalaryPage from "@/pages/user/UserSalaryPage";
+import UserRequestsPage from "@/pages/user/UserRequestsPage";
 import InstallPage from "@/pages/InstallPage";
 import ChangePasswordPage from "@/pages/ChangePasswordPage";
 import AIAssistantPage from "@/pages/admin/AIAssistantPage";
@@ -125,6 +126,7 @@ function AppRoutes() {
         <Route path="/user" element={<UserDashboard />} />
         <Route path="/user/charges" element={<UserChargesPage />} />
         <Route path="/user/salary" element={<UserSalaryPage />} />
+        <Route path="/user/requests" element={<UserRequestsPage />} />
       </Route>
 
       <Route path="*" element={<NotFound />} />

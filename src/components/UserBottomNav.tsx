@@ -1,5 +1,5 @@
 import { useLocation, useNavigate } from "react-router-dom";
-import { Home, DollarSign, BarChart3 } from "lucide-react";
+import { Home, DollarSign, BarChart3, FileText } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export function UserBottomNav() {
@@ -7,9 +7,10 @@ export function UserBottomNav() {
   const navigate = useNavigate();
 
   const items = [
+    { path: "/user/requests", label: "الخدمات", icon: FileText },
     { path: "/user/salary", label: "الراتب", icon: BarChart3 },
-    { path: "/user/charges", label: "الشحنات", icon: DollarSign },
     { path: "/user", label: "الرئيسية", icon: Home },
+    { path: "/user/charges", label: "الشحنات", icon: DollarSign },
   ];
 
   return (
