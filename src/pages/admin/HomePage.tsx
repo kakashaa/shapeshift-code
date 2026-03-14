@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { Users, DollarSign, Headphones, AlertTriangle, ChevronLeft } from "lucide-react";
 import { motion } from "framer-motion";
 import { api } from "@/lib/api";
+import { useTheme } from "@/contexts/ThemeContext";
+import { Sun, Moon } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { StatsSkeleton } from "@/components/LoadingSkeleton";
