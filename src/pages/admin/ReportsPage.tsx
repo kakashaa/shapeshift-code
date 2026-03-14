@@ -33,7 +33,7 @@ export default function ReportsPage() {
   const loadReports = async () => {
     setLoading(true);
     let query = supabase
-      .from("ban_reports")
+      .from("ban_reports" as any)
       .select("*")
       .order("created_at", { ascending: false });
 
