@@ -1,13 +1,15 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Bell, Search, MessageSquare, AlertTriangle, Star, ShoppingBag, User, ArrowRightLeft, UserPlus, ClipboardList, Settings, LogOut, ChevronLeft } from "lucide-react";
+import { Bell, Search, MessageSquare, AlertTriangle, Star, ShoppingBag, User, ArrowRightLeft, UserPlus, ClipboardList, Settings, LogOut, ChevronLeft, Sun, Moon } from "lucide-react";
 import { motion } from "framer-motion";
 import { api } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
+import { useTheme } from "@/contexts/ThemeContext";
 
 export default function MorePage() {
   const navigate = useNavigate();
   const { logout } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const [badges, setBadges] = useState<any>({});
 
   useEffect(() => {
@@ -34,7 +36,18 @@ export default function MorePage() {
 
   return (
     <div className="pb-20">
-      <div className="px-4 pt-4 pb-3">
+      <div className="px-4 pt-4 pb-3 flex items-center justify-between">
+        <motion.button
+          whileTap={{ scale: 0.9 }}
+          onClick={toggleTheme}
+          className="w-9 h-9 rounded-xl bg-secondary flex items-center justify-center transition-colors"
+        >
+          {theme === "dark" ? (
+            <Sun className="w-4 h-4 text-warning" />
+          ) : (
+            <Moon className="w-4 h-4 text-primary" />
+          )}
+        </motion.button>
         <h1 className="text-[15px] font-bold">المزيد</h1>
       </div>
 
