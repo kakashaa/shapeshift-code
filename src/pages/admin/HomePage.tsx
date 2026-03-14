@@ -60,7 +60,10 @@ export default function HomePage() {
     return map[type] || "📌";
   };
 
+  const handleRefresh = useCallback(async () => { await loadData(); }, []);
+
   return (
+    <PullToRefresh onRefresh={handleRefresh}>
     <div className="pb-20">
       {/* Header */}
       <div className="px-4 pt-3 pb-3 flex items-center justify-between">
