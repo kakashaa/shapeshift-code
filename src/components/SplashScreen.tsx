@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import logo from "@/assets/logo.png";
 
 export function SplashScreen({ onFinish }: { onFinish: () => void }) {
   const [phase, setPhase] = useState<"logo" | "text" | "exit">("logo");
@@ -48,10 +49,9 @@ export function SplashScreen({ onFinish }: { onFinish: () => void }) {
             <motion.div
               animate={{ boxShadow: ["0 0 0px hsl(200 95% 48% / 0)", "0 0 40px hsl(200 95% 48% / 0.3)", "0 0 20px hsl(200 95% 48% / 0.15)"] }}
               transition={{ duration: 1.5, ease: "easeInOut" }}
-              className="w-24 h-24 rounded-3xl flex items-center justify-center"
-              style={{ background: "var(--gradient-primary)" }}
+              className="w-24 h-24 rounded-3xl flex items-center justify-center overflow-hidden"
             >
-              <span className="text-4xl font-bold text-primary-foreground">G</span>
+              <img src={logo} alt="GhalaLive" className="w-full h-full object-contain" />
             </motion.div>
           </motion.div>
 
