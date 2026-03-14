@@ -300,6 +300,12 @@ export const api = {
   aiAssistant: (question: string) =>
     request<any>("ai_assistant", { question }, "POST"),
 
+  // V2: Online status + typing
+  adminHeartbeat: (typing = false, chat_id = "", recording = false) =>
+    request<any>("admin_heartbeat", { typing, chat_id, recording }, "POST"),
+  adminOnlineList: () =>
+    request<any>("admin_online_list"),
+
   // V2: User actions (HMAC API)
   userVipRequest: (vip_level: number) =>
     request<any>("user_vip_request", { vip_level }, "POST"),

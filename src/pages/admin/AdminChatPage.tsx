@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { Send, ArrowRight, CheckCheck, Users, Plus, User, Crown } from "lucide-react";
+import { Send, ArrowRight, CheckCheck, Users, Plus, User, Crown, Mic } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { api } from "@/lib/api";
 import { motion, AnimatePresence } from "framer-motion";
@@ -33,8 +33,11 @@ export default function AdminChatPage() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(true);
+  const [onlineAdmins, setOnlineAdmins] = useState<any[]>([]);
+  const [isTyping, setIsTyping] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const typingTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
   const username = localStorage.getItem("ghala_username") || localStorage.getItem("ghala_name") || "";
 
   const ADMIN_NAMES: Record<string, string> = {
@@ -63,16 +66,45 @@ export default function AdminChatPage() {
     } catch {}
   }, [activeChat]);
 
+  // Load online status
+  const loadOnline = useCallback(async () => {
+    try {
+      const res = await api.adminOnlineList();
+      if (res.success) setOnlineAdmins(res.admins || []);
+    } catch {}
+  }, []);
+
   useEffect(() => { loadChats(); }, [loadChats]);
   useEffect(() => { loadMessages(); }, [loadMessages]);
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages.length]);
 
-  // Auto-refresh every 5s
+  // Heartbeat every 10s + poll messages every 3s + online every 5s
   useEffect(() => {
     if (!activeChat) return;
-    const interval = setInterval(loadMessages, 5000);
-    return () => clearInterval(interval);
-  }, [activeChat, loadMessages]);
+    const msgInterval = setInterval(loadMessages, 3000);
+    const onlineInterval = setInterval(loadOnline, 5000);
+    const heartbeat = setInterval(() => api.adminHeartbeat(isTyping, activeChat).catch(() => {}), 10000);
+    
+    // Initial
+    api.adminHeartbeat(false, activeChat).catch(() => {});
+    loadOnline();
+    
+    return () => { clearInterval(msgInterval); clearInterval(onlineInterval); clearInterval(heartbeat); };
+  }, [activeChat, loadMessages, loadOnline, isTyping]);
+
+  // Handle typing indicator
+  const handleInputChange = (value: string) => {
+    setInput(value);
+    if (!isTyping) {
+      setIsTyping(true);
+      api.adminHeartbeat(true, activeChat || "").catch(() => {});
+    }
+    clearTimeout(typingTimeoutRef.current);
+    typingTimeoutRef.current = setTimeout(() => {
+      setIsTyping(false);
+      api.adminHeartbeat(false, activeChat || "").catch(() => {});
+    }, 3000);
+  };
 
   const handleSend = async () => {
     if (!input.trim() || !activeChat) return;
@@ -214,17 +246,59 @@ export default function AdminChatPage() {
   return (
     <div className="flex flex-col h-screen bg-background">
       {/* Header */}
-      <div className="bg-card border-b border-border px-3 py-2.5 flex items-center gap-3 sticky top-0 z-20">
-        <button onClick={() => { setActiveChat(null); loadChats(); }} className="p-1 -mr-1">
-          <ArrowRight className="w-5 h-5 text-muted-foreground" />
-        </button>
-        <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center">
-          {(() => { const Icon = getChatIcon(currentChat?.type || ""); return <Icon className="w-4 h-4 text-primary" />; })()}
+      <div className="bg-card border-b border-border px-3 py-2.5 sticky top-0 z-20">
+        <div className="flex items-center gap-3">
+          <button onClick={() => { setActiveChat(null); loadChats(); }} className="p-1 -mr-1">
+            <ArrowRight className="w-5 h-5 text-muted-foreground" />
+          </button>
+          <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center">
+            {(() => { const Icon = getChatIcon(currentChat?.type || ""); return <Icon className="w-4 h-4 text-primary" />; })()}
+          </div>
+          <div className="flex-1">
+            <h3 className="text-sm font-semibold">{currentChat?.name || activeChat}</h3>
+            {(() => {
+              const chatMembers = currentChat?.members || [];
+              const onlineMembers = onlineAdmins.filter(a => a.online && chatMembers.includes(a.username));
+              const typingMembers = onlineAdmins.filter(a => a.typing === activeChat && a.username !== username);
+              const recordingMembers = onlineAdmins.filter(a => a.recording === activeChat && a.username !== username);
+              
+              if (recordingMembers.length > 0) {
+                return <p className="text-[10px] text-red-400 animate-pulse">🎙️ {recordingMembers.map(m => m.name).join("، ")} يسجل صوت...</p>;
+              }
+              if (typingMembers.length > 0) {
+                return <p className="text-[10px] text-primary animate-pulse">✍️ {typingMembers.map(m => m.name).join("، ")} يكتب...</p>;
+              }
+              return <p className="text-[10px] text-muted-foreground">{onlineMembers.length} أونلاين من {chatMembers.length}</p>;
+            })()}
+          </div>
         </div>
-        <div className="flex-1">
-          <h3 className="text-sm font-semibold">{currentChat?.name || activeChat}</h3>
-          <p className="text-[10px] text-muted-foreground">{currentChat?.members?.length || 0} أعضاء</p>
-        </div>
+        {/* Online members bar */}
+        {(() => {
+          const chatMembers = currentChat?.members || [];
+          return (
+            <div className="flex gap-1.5 mt-2 overflow-x-auto scrollbar-hide pb-1">
+              {chatMembers.map(member => {
+                const online = onlineAdmins.find(a => a.username === member);
+                const isOnline = online?.online || false;
+                return (
+                  <div key={member} className="flex flex-col items-center flex-shrink-0">
+                    <div className="relative">
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-bold ${
+                        isOnline ? "bg-green-500/20 text-green-400" : "bg-gray-500/20 text-gray-500"
+                      }`}>
+                        {getArabicName(member).charAt(0)}
+                      </div>
+                      <div className={`absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-card ${
+                        isOnline ? "bg-green-500" : "bg-gray-500"
+                      }`} />
+                    </div>
+                    <span className="text-[8px] text-muted-foreground mt-0.5 max-w-[40px] truncate">{getArabicName(member)}</span>
+                  </div>
+                );
+              })}
+            </div>
+          );
+        })()}
       </div>
 
       {/* Messages */}
@@ -257,7 +331,7 @@ export default function AdminChatPage() {
       {/* Input */}
       <div className="bg-card border-t border-border px-3 py-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] mb-14">
         <div className="flex gap-2">
-          <input ref={inputRef} value={input} onChange={e => setInput(e.target.value)}
+          <input ref={inputRef} value={input} onChange={e => handleInputChange(e.target.value)}
             onKeyDown={e => e.key === "Enter" && handleSend()}
             placeholder="اكتب رسالة..." className="flex-1 h-10 rounded-full bg-secondary px-4 text-sm" />
           <motion.button whileTap={{ scale: 0.9 }} onClick={handleSend} disabled={!input.trim()}
