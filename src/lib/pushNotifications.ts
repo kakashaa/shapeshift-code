@@ -1,6 +1,19 @@
 import { supabase } from "@/integrations/supabase/client";
 
-const VAPID_PUBLIC_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY;
+let cachedPublicKey: string | null = null;
+
+async function getVapidPublicKey(): Promise<string | null> {
+  if (cachedPublicKey) return cachedPublicKey;
+  try {
+    const { data, error } = await supabase.functions.invoke("vapid-public-key");
+    if (error) throw error;
+    cachedPublicKey = data?.publicKey || null;
+    return cachedPublicKey;
+  } catch (err) {
+    console.error("Failed to fetch VAPID key:", err);
+    return null;
+  }
+}
 
 function urlBase64ToUint8Array(base64String: string): Uint8Array {
   const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
@@ -26,15 +39,19 @@ export async function subscribeToPush(): Promise<boolean> {
       return false;
     }
 
-    const registration = await navigator.serviceWorker.ready;
+    const vapidKey = await getVapidPublicKey();
+    if (!vapidKey) {
+      console.error("VAPID public key not available");
+      return false;
+    }
 
-    // Check for existing subscription
+    const registration = await navigator.serviceWorker.ready;
     let subscription = await registration.pushManager.getSubscription();
 
-    if (!subscription && VAPID_PUBLIC_KEY) {
+    if (!subscription) {
       subscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY) as BufferSource,
+        applicationServerKey: urlBase64ToUint8Array(vapidKey) as BufferSource,
       });
     }
 
@@ -45,7 +62,6 @@ export async function subscribeToPush(): Promise<boolean> {
 
     const subJson = subscription.toJSON();
 
-    // Store in database
     const { error } = await supabase.from("push_subscriptions").upsert(
       {
         endpoint: subJson.endpoint!,
