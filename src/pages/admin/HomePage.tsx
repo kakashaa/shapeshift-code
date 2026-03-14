@@ -34,7 +34,7 @@ export default function HomePage() {
     try {
       const [s, a] = await Promise.all([api.dashboardStats(), api.activityFeed(20)]);
       setStats(s);
-      setActivities(a);
+      setActivities(Array.isArray(a) ? a : []);
     } catch {
       setStats({ online: 234, charges_today: 1250, open_support: 3, new_reports: 2 });
       setActivities([

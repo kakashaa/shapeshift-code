@@ -30,39 +30,48 @@ export function isLoggedIn(): boolean {
   return !!getToken();
 }
 
+// Helper to safely extract array data from API response
+function extractArray(data: any): any[] {
+  if (Array.isArray(data)) return data;
+  if (data && typeof data === "object") {
+    // Try common wrapper keys
+    for (const key of ["data", "list", "items", "results", "messages", "users", "charges", "reports", "requests"]) {
+      if (Array.isArray(data[key])) return data[key];
+    }
+  }
+  return [];
+}
+
 async function request<T>(action: string, params: Record<string, any> = {}, method: "GET" | "POST" = "GET"): Promise<T> {
   const token = getToken();
   
-  if (method === "GET") {
-    const searchParams = new URLSearchParams({ action, ...(token ? { token } : {}), ...params });
-    const res = await fetch(`${API_BASE}?${searchParams.toString()}`);
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const data = await res.json();
-    if (data.success === false) {
-      if (data.error === "unauthorized") {
-        clearSession();
-        window.location.href = "/login";
-      }
-      throw new Error(data.message || "حدث خطأ");
+  const url = method === "GET"
+    ? `${API_BASE}?${new URLSearchParams({ action, ...(token ? { token } : {}), ...params }).toString()}`
+    : `${API_BASE}?action=${action}`;
+  
+  const options: RequestInit = method === "POST" ? {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ ...params, ...(token ? { token } : {}) }),
+  } : {};
+
+  const res = await fetch(url, options);
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const data = await res.json();
+  if (data.success === false) {
+    if (data.error === "unauthorized") {
+      clearSession();
+      window.location.href = "/login";
     }
-    return data;
-  } else {
-    const res = await fetch(`${API_BASE}?action=${action}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...params, ...(token ? { token } : {}) }),
-    });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const data = await res.json();
-    if (data.success === false) {
-      if (data.error === "unauthorized") {
-        clearSession();
-        window.location.href = "/login";
-      }
-      throw new Error(data.message || "حدث خطأ");
-    }
-    return data;
+    throw new Error(data.message || "حدث خطأ");
   }
+  return data;
+}
+
+// Safe array request - ensures result is always an array
+async function requestArray<T>(action: string, params: Record<string, any> = {}, method: "GET" | "POST" = "GET"): Promise<T[]> {
+  const data = await request<any>(action, params, method);
+  return extractArray(data) as T[];
 }
 
 // Auth
@@ -82,7 +91,7 @@ export const api = {
     request<{ online: number; charges_today: number; open_support: number; new_reports: number }>("dashboard_stats"),
   
   activityFeed: (limit = 20) =>
-    request<Array<{ type: string; text: string; time: string; link: string }>>("activity_feed", { limit }),
+    requestArray<{ type: string; text: string; time: string; link: string }>("activity_feed", { limit }),
 
   // Badge counts
   badgeCounts: () =>
@@ -90,7 +99,7 @@ export const api = {
 
   // Support
   supportList: (status = "open") =>
-    request<Array<any>>("support_list", { status }),
+    requestArray<any>("support_list", { status }),
   
   supportChat: (ticket_id: number) =>
     request<any>("support_chat", { ticket_id }),
@@ -103,7 +112,7 @@ export const api = {
 
   // Suspicious messages
   suspiciousMessages: (limit = 50) =>
-    request<Array<any>>("suspicious_messages", { limit }),
+    requestArray<any>("suspicious_messages", { limit }),
   
   banUser: (uuid: string, reason: string) =>
     request<{ success: boolean; message: string }>("ban_user", { uuid, reason }, "POST"),
@@ -129,7 +138,7 @@ export const api = {
     request<any>("broadcast", { message }, "POST"),
   
   notificationLog: (limit = 50) =>
-    request<Array<any>>("notification_log", { limit }),
+    requestArray<any>("notification_log", { limit }),
 
   // Gift audit
   giftSent: (uuid: string, from: string, to: string) =>
@@ -140,28 +149,28 @@ export const api = {
 
   // Admin chat
   adminChat: (since = 0, limit = 100) =>
-    request<Array<any>>("admin_chat", { since, limit }),
+    requestArray<any>("admin_chat", { since, limit }),
   
   adminChatSend: (message: string) =>
     request<{ success: boolean; id: number }>("admin_chat_send", { message }, "POST"),
 
   // Reports
   reports: (status = "pending") =>
-    request<Array<any>>("reports", { status }),
+    requestArray<any>("reports", { status }),
   
   reportAction: (report_id: number, action: "approve" | "reject") =>
     request<any>("report_action", { report_id, action }, "POST"),
 
   // VIP requests
   vipRequests: () =>
-    request<Array<any>>("vip_requests"),
+    requestArray<any>("vip_requests"),
   
   vipAction: (request_id: number, action: "approve" | "reject") =>
     request<any>("vip_action", { request_id, action }, "POST"),
 
   // Store requests
   storeRequests: (type = "all") =>
-    request<Array<any>>("store_requests", { type }),
+    requestArray<any>("store_requests", { type }),
   
   storeApprove: (request_id: number) =>
     request<any>("store_approve", { request_id }, "POST"),
@@ -171,7 +180,7 @@ export const api = {
 
   // User search
   userSearch: (q: string) =>
-    request<Array<any>>("user_search", { q }),
+    requestArray<any>("user_search", { q }),
   
   userDetail: (uuid: string) =>
     request<any>("user_detail", { uuid }),
@@ -187,7 +196,7 @@ export const api = {
 
   // Activity log
   activityLog: (admin = "all", date: string, limit = 100) =>
-    request<Array<any>>("activity_log", { admin, date, limit }),
+    requestArray<any>("activity_log", { admin, date, limit }),
 
   // User profile (for user type)
   userProfile: () =>
@@ -195,12 +204,12 @@ export const api = {
 
   // ID change requests
   idChangeRequests: () =>
-    request<Array<any>>("id_change_requests"),
+    requestArray<any>("id_change_requests"),
   
   idChangeAction: (request_id: number, action: "approve" | "reject") =>
     request<any>("id_change_action", { request_id, action }, "POST"),
 
   // New registrations
   newRegistrations: (limit = 50) =>
-    request<Array<any>>("new_registrations", { limit }),
+    requestArray<any>("new_registrations", { limit }),
 };
