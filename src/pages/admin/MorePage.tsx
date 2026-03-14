@@ -12,9 +12,7 @@ export default function MorePage() {
   const { theme, toggleTheme } = useTheme();
   const [badges, setBadges] = useState<any>({});
 
-  useEffect(() => {
-    loadBadges();
-  }, []);
+  useEffect(() => { loadBadges(); }, []);
 
   const loadBadges = async () => {
     try {
@@ -71,37 +69,35 @@ export default function MorePage() {
         <motion.button
           whileTap={{ scale: 0.85 }}
           onClick={toggleTheme}
-          className="w-10 h-10 rounded-xl icon-3d transition-colors"
+          className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center"
         >
           {theme === "dark" ? (
-            <Sun className="w-4.5 h-4.5 text-warning" />
+            <Sun className="w-[18px] h-[18px] text-warning" />
           ) : (
-            <Moon className="w-4.5 h-4.5 text-primary" />
+            <Moon className="w-[18px] h-[18px] text-primary" />
           )}
         </motion.button>
         <h1 className="text-[16px] font-black tracking-tight">المزيد</h1>
       </div>
 
-      <div className="px-4 space-y-2">
+      <div className="px-4 space-y-1.5">
         {items.map((item, i) => (
           <motion.button
             key={item.path}
-            initial={{ opacity: 0, y: 8 }}
+            initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.03, duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-            whileTap={{ scale: 0.97, y: 2 }}
+            transition={{ delay: i * 0.025, duration: 0.25 }}
             onClick={() => navigate(item.path)}
-            className="w-full card-3d flex items-center gap-3 px-4 py-3.5 text-right"
+            className="w-full glass-card flex items-center gap-3 px-4 py-3 text-right active:scale-[0.98] active:opacity-80 transition-all duration-150"
           >
             <ChevronLeft className="w-4 h-4 text-muted-foreground/40" />
             <span className="flex-1 text-[13px] font-semibold">{item.label}</span>
             {item.badge > 0 && (
-              <span className="min-w-[20px] h-5 rounded-full bg-destructive text-destructive-foreground text-[9px] font-bold flex items-center justify-center px-1.5 badge-pulse"
-                style={{ boxShadow: "0 2px 8px hsl(0 72% 52% / 0.4)" }}>
+              <span className="min-w-[20px] h-5 rounded-full bg-destructive text-destructive-foreground text-[9px] font-bold flex items-center justify-center px-1.5 badge-pulse">
                 {item.badge}
               </span>
             )}
-            <div className={`w-9 h-9 rounded-xl icon-3d flex items-center justify-center shrink-0`}>
+            <div className="w-9 h-9 rounded-xl bg-secondary flex items-center justify-center shrink-0">
               <item.icon className={`w-4 h-4 ${item.color}`} />
             </div>
           </motion.button>
@@ -109,13 +105,11 @@ export default function MorePage() {
 
         <div className="pt-3">
           <motion.button
-            whileTap={{ scale: 0.96, y: 2 }}
             onClick={handleLogout}
-            className="w-full card-3d flex items-center gap-3 px-4 py-3.5 text-right"
-            style={{ borderColor: "hsl(0 72% 52% / 0.15)" }}
+            className="w-full glass-card flex items-center gap-3 px-4 py-3 text-right active:scale-[0.98] transition-all duration-150"
           >
             <span className="flex-1 text-[13px] font-bold text-destructive">تسجيل خروج</span>
-            <div className="w-9 h-9 rounded-xl icon-3d flex items-center justify-center shrink-0">
+            <div className="w-9 h-9 rounded-xl bg-destructive/10 flex items-center justify-center shrink-0">
               <LogOut className="w-4 h-4 text-destructive" />
             </div>
           </motion.button>
