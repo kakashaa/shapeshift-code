@@ -1,10 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { Users, DollarSign, Headphones, AlertTriangle, Bell, ChevronLeft } from "lucide-react";
 import { motion } from "framer-motion";
 import { api } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
 import { StatsSkeleton } from "@/components/LoadingSkeleton";
+import { PullToRefresh } from "@/components/PullToRefresh";
 
 interface Stats {
   online: number;
