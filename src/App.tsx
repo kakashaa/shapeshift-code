@@ -120,7 +120,9 @@ const App = () => (
         <Toaster />
         <AuthProvider>
           <BrowserRouter>
-            <AppRoutes />
+            <AnimatedRouteWrapper>
+              <AppRoutes />
+            </AnimatedRouteWrapper>
           </BrowserRouter>
         </AuthProvider>
       </ThemeProvider>
