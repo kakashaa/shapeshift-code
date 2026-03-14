@@ -33,6 +33,7 @@ import ActivityLogPage from "@/pages/admin/ActivityLogPage";
 import IdChangePage from "@/pages/admin/IdChangePage";
 import RegistrationsPage from "@/pages/admin/RegistrationsPage";
 import SettingsPage from "@/pages/admin/SettingsPage";
+import AnalyticsPage from "@/pages/admin/AnalyticsPage";
 import UserDashboard from "@/pages/user/UserDashboard";
 import UserChargesPage from "@/pages/user/UserChargesPage";
 import UserSalaryPage from "@/pages/user/UserSalaryPage";
