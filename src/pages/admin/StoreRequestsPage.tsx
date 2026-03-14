@@ -95,7 +95,7 @@ export default function StoreRequestsPage() {
       // Entry gift claims
       if (filter === "all" || filter === "entry_gift") {
         const { data } = await supabase
-          .from("entry_gift_claims")
+          .from("entry_gift_claims" as any)
           .select("*, entry_gifts(title, video_url)")
           .order("created_at", { ascending: false });
         if (data) {
