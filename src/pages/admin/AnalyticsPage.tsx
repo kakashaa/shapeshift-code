@@ -3,8 +3,9 @@ import { motion } from "framer-motion";
 import { PageHeader } from "@/components/PageHeader";
 import {
   Users, DollarSign, AlertTriangle, TrendingUp, TrendingDown,
-  Activity, Eye, UserPlus, ShieldAlert, Zap
+  Activity, Eye, UserPlus, ShieldAlert, Zap, Download
 } from "lucide-react";
+import { exportToCSV, exportToPDF } from "@/lib/export";
 import {
   AreaChart, Area, BarChart, Bar, LineChart, Line,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,

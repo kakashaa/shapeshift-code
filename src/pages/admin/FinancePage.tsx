@@ -5,7 +5,8 @@ import { PageHeader } from "@/components/PageHeader";
 import { CardSkeleton } from "@/components/LoadingSkeleton";
 import { PullToRefresh } from "@/components/PullToRefresh";
 import { UserAvatar } from "@/components/UserAvatar";
-import { TrendingUp, TrendingDown, DollarSign, Users, ArrowUpRight } from "lucide-react";
+import { TrendingUp, TrendingDown, DollarSign, Users, ArrowUpRight, Download } from "lucide-react";
+import { exportToCSV, exportToPDF } from "@/lib/export";
 import {
   AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, PieChart, Pie, Cell,
