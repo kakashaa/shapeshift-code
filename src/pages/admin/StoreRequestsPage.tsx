@@ -114,7 +114,7 @@ export default function StoreRequestsPage() {
       // Custom gifts
       if (filter === "all" || filter === "custom_gift") {
         const { data } = await supabase
-          .from("custom_gifts")
+          .from("custom_gifts" as any)
           .select("*")
           .eq("is_deleted", false)
           .order("created_at", { ascending: false });
