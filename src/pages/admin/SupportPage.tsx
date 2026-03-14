@@ -42,7 +42,7 @@ export default function SupportPage() {
     if (error) {
       console.error("Error loading tickets:", error);
     }
-    setTickets(data || []);
+    setTickets((data as any) || []);
     setLoading(false);
   };
 

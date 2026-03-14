@@ -95,7 +95,7 @@ async function requestArray<T>(action: string, params: Record<string, any> = {},
 export const api = {
   // Login
   adminLogin: (username: string, password: string) =>
-    request<{ success: boolean; token: string; name: string; role: string; type: string }>("login", { username, password }, "POST"),
+    request<{ success: boolean; token: string; name: string; role: string; type: string; permissions?: any[]; must_change_password?: boolean; username?: string }>("login", { username, password }, "POST"),
   
   userLoginRequest: (uuid: string) =>
     request<{ success: boolean; message: string }>("user_login_request", { uuid }, "POST"),

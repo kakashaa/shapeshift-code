@@ -195,7 +195,7 @@ export default function StoreRequestsPage() {
     const note = prompt("سبب الرفض (اختياري):");
 
     const { error } = await supabase
-      .from(table)
+      .from(table as any)
       .update({ status: "rejected", admin_note: note || null })
       .eq("id", req.id);
 

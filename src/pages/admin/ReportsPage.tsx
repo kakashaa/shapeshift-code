@@ -67,7 +67,7 @@ export default function ReportsPage() {
     const note = prompt("أضف ملاحظة:");
     if (!note) return;
     const { error } = await supabase
-      .from("ban_reports")
+      .from("ban_reports" as any)
       .update({ admin_notes: note })
       .eq("id", id);
 

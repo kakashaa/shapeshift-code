@@ -34,7 +34,7 @@ export default function IdChangePage() {
       console.error("Error loading ID changes:", error);
       toast({ title: "خطأ في تحميل الطلبات", variant: "destructive" });
     }
-    setRequests(data || []);
+    setRequests((data as any) || []);
     setLoading(false);
   };
 

@@ -328,7 +328,7 @@ function HistoryTab() {
   useEffect(() => {
     (async () => {
       try {
-        const res = await api.notificationLog(50);
+        const res = await api.notificationLog(50) as any;
         if (res.success) setLog(res.log || []);
       } catch {}
       setLoading(false);
