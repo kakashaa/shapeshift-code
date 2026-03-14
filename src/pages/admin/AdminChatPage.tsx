@@ -125,7 +125,7 @@ export default function AdminChatPage() {
                 }`}>
                   {/* Sender name - only on first message */}
                   {msg.isFirst && (
-                    <p className={`text-[10px] font-bold mb-0.5 bg-gradient-to-r ${colorClass} bg-clip-text text-transparent`}>
+                    <p className="text-[10px] font-bold mb-0.5 text-primary">
                       {msg.admin_name}
                       {mine && " (أنت)"}
                     </p>
