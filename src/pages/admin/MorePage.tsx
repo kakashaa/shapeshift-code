@@ -28,6 +28,7 @@ export default function MorePage() {
     { icon: UserPlus, label: "تسجيلات جديدة", path: "/more/registrations", badge: 0 },
     { icon: ClipboardList, label: "سجل الإجراءات", path: "/more/activity-log", badge: 0 },
     { icon: Settings, label: "الإعدادات", path: "/more/settings", badge: 0 },
+    { icon: BarChart2, label: "الإحصائيات", path: "/more/analytics", badge: 0 },
   ];
 
   const handleLogout = () => {
