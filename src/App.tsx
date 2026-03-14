@@ -37,6 +37,7 @@ import AnalyticsPage from "@/pages/admin/AnalyticsPage";
 import UserDashboard from "@/pages/user/UserDashboard";
 import UserChargesPage from "@/pages/user/UserChargesPage";
 import UserSalaryPage from "@/pages/user/UserSalaryPage";
+import InstallPage from "@/pages/InstallPage";
 import NotFound from "@/pages/NotFound";
 
 const queryClient = new QueryClient();
