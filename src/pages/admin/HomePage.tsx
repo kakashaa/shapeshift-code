@@ -22,6 +22,7 @@ export default function HomePage() {
   const [badges, setBadges] = useState({ reports: 0, vip: 0, store: 0, support: 0 });
   const navigate = useNavigate();
   const { name } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const {
     notifications, unreadCount, markAsRead, markAllAsRead, clearAll,
     permissionGranted, enableBrowserNotifications,
