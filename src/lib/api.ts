@@ -229,5 +229,15 @@ export const api = {
   // New registrations
   newRegistrations: (limit = 50) =>
     requestArray<any>("new_registrations", { limit }),
+
+  // Admin Notifications
+  adminNotifications: (params: { limit?: number; category?: string } = {}) =>
+    request<any>("admin_notifications", params),
+  adminNotificationsUnread: () =>
+    request<any>("admin_notifications_unread"),
+  adminNotificationRead: (notification_id: string) =>
+    request<any>("admin_notification_read", { notification_id }, "POST"),
+  adminNotificationsReadAll: (category?: string) =>
+    request<any>("admin_notifications_read_all", category ? { category } : {}, "POST"),
 };
 // rebuild 1773494525

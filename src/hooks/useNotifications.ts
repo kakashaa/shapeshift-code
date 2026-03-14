@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { adminAPI } from "@/lib/api";
+import { api } from "@/lib/api";
 
 export interface AppNotification {
   id: string;
@@ -103,7 +103,7 @@ export function useNotifications(enabled = true) {
   // Fetch notifications from API
   const fetchNotifications = useCallback(async () => {
     try {
-      const res = await adminAPI("admin_notifications", { limit: 50 });
+      const res = await api.adminNotifications({ limit: 50 });
       if (res.success && res.notifications) {
         const mapped: AppNotification[] = res.notifications.map((n: any) => ({
           id: n.id,
@@ -142,7 +142,7 @@ export function useNotifications(enabled = true) {
   // Mark single as read
   const markAsRead = useCallback(async (id: string) => {
     try {
-      await adminAPI("admin_notification_read", { notification_id: id });
+      await api.adminNotificationRead(id);
       setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
       setUnreadCount(prev => Math.max(0, prev - 1));
     } catch {}
@@ -151,7 +151,7 @@ export function useNotifications(enabled = true) {
   // Mark all as read
   const markAllAsRead = useCallback(async (category?: string) => {
     try {
-      await adminAPI("admin_notifications_read_all", category ? { category } : {});
+      await api.adminNotificationsReadAll(category);
       setNotifications(prev => prev.map(n => 
         (!category || n.category === category) ? { ...n, read: true } : n
       ));

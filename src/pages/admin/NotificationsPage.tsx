@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Send, Bell, History, Filter, CheckCheck } from "lucide-react";
 import { PageHeader } from "@/components/PageHeader";
-import { adminAPI } from "@/lib/api";
+import { api } from "@/lib/api";
 import { toast } from "@/hooks/use-toast";
 import { motion, AnimatePresence } from "framer-motion";
 import { getCategoryLabel } from "@/hooks/useNotifications";
@@ -45,7 +45,7 @@ export default function NotificationsPage() {
     try {
       const params: any = { limit: 100 };
       if (selectedCategory !== "all") params.category = selectedCategory;
-      const res = await adminAPI("admin_notifications", params);
+      const res = await api.adminNotifications(params);
       if (res.success) {
         setNotifications(res.notifications || []);
       }
@@ -57,7 +57,7 @@ export default function NotificationsPage() {
 
   const loadUnreadCounts = async () => {
     try {
-      const res = await adminAPI("admin_notifications_unread");
+      const res = await api.adminNotificationsUnread();
       if (res.success) {
         setUnreadCounts(res.by_category || {});
       }
@@ -82,7 +82,7 @@ export default function NotificationsPage() {
   }, [tab, selectedCategory]);
 
   const markAsRead = async (id: string) => {
-    await adminAPI("admin_notification_read", { notification_id: id });
+    await api.adminNotificationRead(id);
     setNotifications(prev => prev.map(n => n.id === id ? { ...n, is_read: true } : n));
     loadUnreadCounts();
   };
@@ -90,7 +90,7 @@ export default function NotificationsPage() {
   const markAllAsRead = async () => {
     const params: any = {};
     if (selectedCategory !== "all") params.category = selectedCategory;
-    await adminAPI("admin_notifications_read_all", params);
+    await api.adminNotificationsReadAll(selectedCategory !== "all" ? selectedCategory : undefined);
     setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
     loadUnreadCounts();
     toast({ title: "✅ تم قراءة الكل" });
@@ -100,7 +100,7 @@ export default function NotificationsPage() {
     if (!uuid || !message) return;
     setSending(true);
     try {
-      const res = await adminAPI("send_dm", { to_uuid: uuid, message });
+      const res = await api.sendDm(uuid, message);
       if (res.success) {
         toast({ title: "✅ تم إرسال الرسالة" });
         setUuid("");
@@ -118,7 +118,7 @@ export default function NotificationsPage() {
     if (!message) return;
     setSending(true);
     try {
-      const res = await adminAPI("broadcast", { message });
+      const res = await api.broadcast(message);
       if (res.success) {
         toast({ title: "✅ تم إرسال الإشعار العام" });
         setMessage("");
@@ -328,7 +328,7 @@ function HistoryTab() {
   useEffect(() => {
     (async () => {
       try {
-        const res = await adminAPI("notification_log", { limit: 50 });
+        const res = await api.notificationLog(50);
         if (res.success) setLog(res.log || []);
       } catch {}
       setLoading(false);

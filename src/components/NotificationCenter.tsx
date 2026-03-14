@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Bell, Check, CheckCheck, Trash2, BellRing, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { AppNotification, getTypeLabel } from "@/hooks/useNotifications";
+import { AppNotification, getCategoryLabel } from "@/hooks/useNotifications";
 
 interface Props {
   notifications: AppNotification[];
@@ -163,8 +163,8 @@ export function NotificationCenter({
                       <div className="flex items-center justify-between gap-2 mb-0.5">
                         <span className="text-[10px] text-muted-foreground">{timeAgo(notif.time)}</span>
                         <div className="flex items-center gap-1.5">
-                          <span className={`text-[10px] px-1.5 py-0.5 rounded-md font-medium ${TYPE_COLORS[notif.type] || "bg-muted text-muted-foreground"}`}>
-                            {getTypeLabel(notif.type)}
+                          <span className={`text-[10px] px-1.5 py-0.5 rounded-md font-medium ${TYPE_COLORS[notif.category] || "bg-muted text-muted-foreground"}`}>
+                            {getCategoryLabel(notif.category)}
                           </span>
                           <span className={`text-[12px] font-bold ${!notif.read ? "text-foreground" : "text-muted-foreground"}`}>
                             {notif.title}
