@@ -239,5 +239,61 @@ export const api = {
     request<any>("admin_notification_read", { notification_id }, "POST"),
   adminNotificationsReadAll: (category?: string) =>
     request<any>("admin_notifications_read_all", category ? { category } : {}, "POST"),
+
+  // V2: Password change
+  changePassword: (old_password: string, new_password: string, phone?: string) =>
+    request<any>("change_password", { old_password, new_password, ...(phone ? { phone } : {}) }, "POST"),
+
+  // V2: Admin accounts (owner only)
+  adminAccounts: () =>
+    request<any>("admin_accounts"),
+  adminAccountCreate: (data: Record<string, any>) =>
+    request<any>("admin_account_create", data, "POST"),
+  adminAccountUpdate: (username: string, data: Record<string, any>) =>
+    request<any>("admin_account_update", { username, ...data }, "POST"),
+  adminAccountDelete: (username: string) =>
+    request<any>("admin_account_delete", { username }, "POST"),
+
+  // V2: Admin notes (owner only)
+  adminNotes: (target_type: string, target_id: string) =>
+    request<any>("admin_notes", { target_type, target_id }),
+  adminNoteAdd: (target_type: string, target_id: string, note: string) =>
+    request<any>("admin_notes", { target_type, target_id, note }, "POST"),
+
+  // V2: Trash (owner only)
+  trashList: (type?: string) =>
+    request<any>("trash_list", type ? { type } : {}),
+  trashRestore: (trash_id: string) =>
+    request<any>("trash_restore", { trash_id }, "POST"),
+  trashDelete: (trash_id: string) =>
+    request<any>("trash_delete", { trash_id }, "POST"),
+
+  // V2: On duty
+  onDuty: () =>
+    request<any>("on_duty"),
+
+  // V2: Chat system
+  chatList: () =>
+    request<any>("chat_list"),
+  chatMessages: (chat_id: string, limit = 100) =>
+    request<any>("chat_messages", { chat_id, limit }),
+  chatSend: (chat_id: string, message: string, msg_type = "text", media_url = "") =>
+    request<any>("chat_send", { chat_id, message, msg_type, media_url }, "POST"),
+  chatRename: (chat_id: string, name: string) =>
+    request<any>("chat_rename", { chat_id, name }, "POST"),
+  chatDeleteMessage: (chat_id: string, message_id: string) =>
+    request<any>("chat_delete_message", { chat_id, message_id }, "POST"),
+
+  // V2: Request/Ticket system
+  submitRequest: (type: string, description: string, priority = "normal") =>
+    request<any>("submit_request", { type, description, priority }, "POST"),
+  requestList: (status?: string) =>
+    request<any>("request_list", status ? { status } : {}),
+  requestRespond: (request_id: string, response: string, status?: string) =>
+    request<any>("request_respond", { request_id, response, ...(status ? { status } : {}) }, "POST"),
+
+  // V2: AI Assistant
+  aiAssistant: (question: string) =>
+    request<any>("ai_assistant", { question }, "POST"),
 };
 // rebuild 1773494525

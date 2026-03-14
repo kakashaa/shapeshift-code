@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Bell, Search, MessageSquare, AlertTriangle, Star, ShoppingBag, User, ArrowRightLeft, UserPlus, ClipboardList, Settings, LogOut, ChevronLeft, Sun, Moon, BarChart2 } from "lucide-react";
+import { Bell, Search, MessageSquare, AlertTriangle, Star, ShoppingBag, User, ArrowRightLeft, UserPlus, ClipboardList, Settings, LogOut, ChevronLeft, Sun, Moon, BarChart2, Bot, Users, Trash2 } from "lucide-react";
 import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -8,7 +8,7 @@ import { useTheme } from "@/contexts/ThemeContext";
 
 export default function MorePage() {
   const navigate = useNavigate();
-  const { logout } = useAuth();
+  const { logout, isOwner, isSuperAdmin } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const [badges, setBadges] = useState<any>({});
 
@@ -54,6 +54,12 @@ export default function MorePage() {
     { icon: ClipboardList, label: "سجل الإجراءات", path: "/more/activity-log", badge: 0 },
     { icon: Settings, label: "الإعدادات", path: "/more/settings", badge: 0 },
     { icon: BarChart2, label: "الإحصائيات", path: "/more/analytics", badge: 0 },
+    { icon: Bot, label: "المساعد الذكي — مدهش", path: "/more/ai-assistant", badge: 0 },
+    // Owner-only items (conditionally shown)
+    ...(isOwner() ? [
+      { icon: Users, label: "إدارة الأدمن", path: "/more/admin-management", badge: 0 },
+      { icon: Trash2, label: "سلة المحذوفات", path: "/more/trash", badge: 0 },
+    ] : []),
   ];
 
   const handleLogout = () => {

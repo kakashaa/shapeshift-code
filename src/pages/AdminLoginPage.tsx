@@ -23,9 +23,18 @@ export default function AdminLoginPage() {
     setLoading(true);
     try {
       const res = await api.adminLogin(username, password);
-      login(res.token, res.type, res.name);
+      login(res.token, res.type, res.name, {
+        role: res.role || "",
+        permissions: JSON.stringify(res.permissions || []),
+        must_change_password: String(res.must_change_password || false),
+        username: res.username || "",
+      });
       toast({ title: "مرحباً " + res.name });
-      navigate("/");
+      if (res.must_change_password) {
+        navigate("/change-password");
+      } else {
+        navigate("/");
+      }
     } catch (e: any) {
       toast({ title: "خطأ", description: e.message || "بيانات خاطئة", variant: "destructive" });
     } finally {

@@ -38,6 +38,10 @@ import UserDashboard from "@/pages/user/UserDashboard";
 import UserChargesPage from "@/pages/user/UserChargesPage";
 import UserSalaryPage from "@/pages/user/UserSalaryPage";
 import InstallPage from "@/pages/InstallPage";
+import ChangePasswordPage from "@/pages/ChangePasswordPage";
+import AIAssistantPage from "@/pages/admin/AIAssistantPage";
+import AdminManagementPage from "@/pages/admin/AdminManagementPage";
+import TrashPage from "@/pages/admin/TrashPage";
 import NotFound from "@/pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -87,6 +91,7 @@ function AppRoutes() {
       <Route path="/login/admin" element={<AdminLoginPage />} />
       <Route path="/login/user" element={<UserLoginPage />} />
       <Route path="/install" element={<InstallPage />} />
+      <Route path="/change-password" element={<ChangePasswordPage />} />
 
       {/* Admin routes */}
       <Route element={<ProtectedRoute allowedType="admin"><AdminLayout /></ProtectedRoute>}>
@@ -111,6 +116,9 @@ function AppRoutes() {
       <Route path="/more/registrations" element={<ProtectedRoute allowedType="admin"><AnimatedPage><RegistrationsPage /></AnimatedPage></ProtectedRoute>} />
       <Route path="/more/settings" element={<ProtectedRoute allowedType="admin"><AnimatedPage><SettingsPage /></AnimatedPage></ProtectedRoute>} />
       <Route path="/more/analytics" element={<ProtectedRoute allowedType="admin"><AnimatedPage><AnalyticsPage /></AnimatedPage></ProtectedRoute>} />
+      <Route path="/more/ai-assistant" element={<ProtectedRoute allowedType="admin"><AnimatedPage><AIAssistantPage /></AnimatedPage></ProtectedRoute>} />
+      <Route path="/more/admin-management" element={<ProtectedRoute allowedType="admin"><AnimatedPage><AdminManagementPage /></AnimatedPage></ProtectedRoute>} />
+      <Route path="/more/trash" element={<ProtectedRoute allowedType="admin"><AnimatedPage><TrashPage /></AnimatedPage></ProtectedRoute>} />
 
       {/* User routes */}
       <Route element={<ProtectedRoute allowedType="user"><UserLayout /></ProtectedRoute>}>
