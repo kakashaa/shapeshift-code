@@ -34,7 +34,7 @@ export default function SupportPage() {
   const loadTickets = async () => {
     setLoading(true);
     const { data, error } = await supabase
-      .from("support_tickets")
+      .from("support_tickets" as any)
       .select("*")
       .eq("status", status)
       .order("updated_at", { ascending: false });
