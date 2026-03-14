@@ -86,6 +86,7 @@ function AppRoutes() {
       <Route path="/login" element={loggedIn ? <Navigate to={type === "user" ? "/user" : "/"} replace /> : <LoginPage />} />
       <Route path="/login/admin" element={<AdminLoginPage />} />
       <Route path="/login/user" element={<UserLoginPage />} />
+      <Route path="/install" element={<InstallPage />} />
 
       {/* Admin routes */}
       <Route element={<ProtectedRoute allowedType="admin"><AdminLayout /></ProtectedRoute>}>
