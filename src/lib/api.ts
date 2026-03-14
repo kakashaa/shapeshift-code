@@ -30,39 +30,48 @@ export function isLoggedIn(): boolean {
   return !!getToken();
 }
 
+// Helper to safely extract array data from API response
+function extractArray(data: any): any[] {
+  if (Array.isArray(data)) return data;
+  if (data && typeof data === "object") {
+    // Try common wrapper keys
+    for (const key of ["data", "list", "items", "results", "messages", "users", "charges", "reports", "requests"]) {
+      if (Array.isArray(data[key])) return data[key];
+    }
+  }
+  return [];
+}
+
 async function request<T>(action: string, params: Record<string, any> = {}, method: "GET" | "POST" = "GET"): Promise<T> {
   const token = getToken();
   
-  if (method === "GET") {
-    const searchParams = new URLSearchParams({ action, ...(token ? { token } : {}), ...params });
-    const res = await fetch(`${API_BASE}?${searchParams.toString()}`);
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const data = await res.json();
-    if (data.success === false) {
-      if (data.error === "unauthorized") {
-        clearSession();
-        window.location.href = "/login";
-      }
-      throw new Error(data.message || "حدث خطأ");
+  const url = method === "GET"
+    ? `${API_BASE}?${new URLSearchParams({ action, ...(token ? { token } : {}), ...params }).toString()}`
+    : `${API_BASE}?action=${action}`;
+  
+  const options: RequestInit = method === "POST" ? {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ ...params, ...(token ? { token } : {}) }),
+  } : {};
+
+  const res = await fetch(url, options);
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const data = await res.json();
+  if (data.success === false) {
+    if (data.error === "unauthorized") {
+      clearSession();
+      window.location.href = "/login";
     }
-    return data;
-  } else {
-    const res = await fetch(`${API_BASE}?action=${action}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...params, ...(token ? { token } : {}) }),
-    });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const data = await res.json();
-    if (data.success === false) {
-      if (data.error === "unauthorized") {
-        clearSession();
-        window.location.href = "/login";
-      }
-      throw new Error(data.message || "حدث خطأ");
-    }
-    return data;
+    throw new Error(data.message || "حدث خطأ");
   }
+  return data;
+}
+
+// Safe array request - ensures result is always an array
+async function requestArray<T>(action: string, params: Record<string, any> = {}, method: "GET" | "POST" = "GET"): Promise<T[]> {
+  const data = await request<any>(action, params, method);
+  return extractArray(data) as T[];
 }
 
 // Auth
