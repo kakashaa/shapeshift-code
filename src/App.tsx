@@ -10,6 +10,7 @@ import { UserBottomNav } from "@/components/UserBottomNav";
 import { AnimatedPage, AnimatedRouteWrapper } from "@/components/AnimatedRoutes";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { SplashScreen } from "@/components/SplashScreen";
+import { DemoBanner } from "@/components/DemoBanner";
 
 // Pages
 import LoginPage from "@/pages/LoginPage";
