@@ -54,6 +54,34 @@ export default function SettingsPage() {
     localStorage.setItem("ghala_demo_notif", val ? "1" : "0");
   };
 
+  const handlePushToggle = async (val: boolean) => {
+    setPushLoading(true);
+    try {
+      if (val) {
+        const success = await subscribeToPush();
+        setPushEnabled(success);
+        if (success) toast({ title: "✅ تم تفعيل إشعارات Push" });
+        else toast({ title: "❌ فشل تفعيل الإشعارات", variant: "destructive" });
+      } else {
+        await unsubscribeFromPush();
+        setPushEnabled(false);
+        toast({ title: "تم إيقاف إشعارات Push" });
+      }
+    } finally {
+      setPushLoading(false);
+    }
+  };
+
+  const handleTestPush = async () => {
+    const success = await sendPushNotification(
+      "🔔 تجربة إشعار",
+      "هذا إشعار تجريبي من GhalaLive!",
+      { tag: "test" }
+    );
+    if (success) toast({ title: "✅ تم إرسال الإشعار التجريبي" });
+    else toast({ title: "❌ فشل الإرسال", variant: "destructive" });
+  };
+
   const handleLanguage = (lang: Language) => {
     setLanguage(lang);
     localStorage.setItem("ghala_lang", lang);
