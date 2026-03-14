@@ -54,7 +54,7 @@ export default function StoreRequestsPage() {
       // Animated photo requests
       if (filter === "all" || filter === "animated_photo") {
         const { data } = await supabase
-          .from("animated_photo_requests")
+          .from("animated_photo_requests" as any)
           .select("*")
           .order("created_at", { ascending: false });
         if (data) {
