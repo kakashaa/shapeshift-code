@@ -73,7 +73,7 @@ export default function SupportChatPage() {
       .eq("id", ticketId)
       .single();
 
-    if (ticketData) setTicket(ticketData);
+    if (ticketData) setTicket(ticketData as any);
 
     // Load messages
     const { data: msgData } = await supabase
