@@ -6,7 +6,7 @@ import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { BottomNav } from "@/components/BottomNav";
 import { UserBottomNav } from "@/components/UserBottomNav";
-import { AnimatedPage } from "@/components/AnimatedRoutes";
+import { AnimatedPage, AnimatedRouteWrapper } from "@/components/AnimatedRoutes";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 // Pages
