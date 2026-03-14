@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { LogOut } from "lucide-react";
 import { motion } from "framer-motion";
@@ -6,6 +6,7 @@ import { api } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
 import { CardSkeleton } from "@/components/LoadingSkeleton";
 import { UserAvatar } from "@/components/UserAvatar";
+import { PullToRefresh } from "@/components/PullToRefresh";
 
 export default function UserDashboard() {
   const [profile, setProfile] = useState<any>(null);
