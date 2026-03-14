@@ -4,11 +4,13 @@ import { motion } from "framer-motion";
 import {
   ArrowRight, Sun, Moon, Monitor, Bell, BellOff, BellRing,
   Globe, User, Shield, LogOut, ChevronLeft, Volume2, VolumeX,
-  Smartphone, Palette
+  Smartphone, Palette, Send
 } from "lucide-react";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { Switch } from "@/components/ui/switch";
+import { subscribeToPush, unsubscribeFromPush, sendPushNotification } from "@/lib/pushNotifications";
+import { toast } from "@/hooks/use-toast";
 
 type Language = "ar" | "en";
 
