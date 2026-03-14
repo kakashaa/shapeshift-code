@@ -7,6 +7,7 @@ import { CardSkeleton } from "@/components/LoadingSkeleton";
 import { EmptyState } from "@/components/EmptyState";
 import { Headphones } from "lucide-react";
 import { UserAvatar } from "@/components/UserAvatar";
+import { PullToRefresh } from "@/components/PullToRefresh";
 
 export default function SupportPage() {
   const [tickets, setTickets] = useState<any[]>([]);
