@@ -32,6 +32,7 @@ import GiftAuditPage from "@/pages/admin/GiftAuditPage";
 import ActivityLogPage from "@/pages/admin/ActivityLogPage";
 import IdChangePage from "@/pages/admin/IdChangePage";
 import RegistrationsPage from "@/pages/admin/RegistrationsPage";
+import SettingsPage from "@/pages/admin/SettingsPage";
 import UserDashboard from "@/pages/user/UserDashboard";
 import UserChargesPage from "@/pages/user/UserChargesPage";
 import UserSalaryPage from "@/pages/user/UserSalaryPage";
