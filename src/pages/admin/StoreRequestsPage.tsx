@@ -99,7 +99,7 @@ export default function StoreRequestsPage() {
           .select("*, entry_gifts(title, video_url)")
           .order("created_at", { ascending: false });
         if (data) {
-          allRequests.push(...data.map(r => ({
+          allRequests.push(...(data as any[]).map((r: any) => ({
             id: r.id,
             type: "entry_gift" as const,
             user_name: r.user_uuid,
